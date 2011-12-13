@@ -1,0 +1,5 @@
+[% WRAPPER "wrapper.tx" %]
+
+<p>Hello, World!</p>
+
+[% END %]

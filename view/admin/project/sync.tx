@@ -1,0 +1,10 @@
+[% WRAPPER "wrapper.tx" WITH
+    metatags = [ {
+        'http-equiv' => 'Refresh',
+        'content' => '3; ' _ refresh_url
+    } ]
+ %]
+
+<p>Sent update request to the backend. Your repositories should be updated soon</p>
+
+[% END %]

@@ -1,0 +1,57 @@
+#!/usr/bin/env perl
+use strict;
+use FindBin;
+use lib ("lib", "$FindBin::Bin/../lib", "$ENV{HOME}/extlib/lib/perl5");
+use Getopt::Long;
+use Cirque::Environment;
+use Cirque::Context;
+use Cirque::Runner;
+
+sub main {
+    my $help = 0;
+    my $setup = 0;
+    my $config = undef;
+    if ( ! GetOptions(
+        "setup!" => \$setup,
+        "help!"  => \$help,
+        "config=s" => \$config,
+    ) ) {
+        exit 1;
+    }
+
+    if ($help) {
+        print <<EOM;
+@{[__FILE__]} [options]
+
+options:
+    --setup:    run setup before launching
+    --config:   path to config file
+    --help:     show help
+
+EOM
+        exit 0;
+    }
+
+    # Load stuff from context
+    my $ctxt = Cirque::Context->bootstrap(
+        config => $config,
+    );
+
+    if ($setup) {
+        # I need a DSN. connect.
+        Mouse::Util::load_class( "Cirque::Setup" );
+        my $setup = Cirque::Setup->new();
+        if ( $setup->needs_setup( $ctxt ) ) {
+            $setup->setup( $ctxt );
+        }
+
+        print "Setup was successful.\n\n";
+    }
+
+    else {
+        my $runner = Cirque::Runner->new();
+        $runner->run($ctxt);
+    }
+}
+
+main();

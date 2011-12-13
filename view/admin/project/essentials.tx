@@ -1,0 +1,56 @@
+[% MACRO required() BLOCK %]
+<span style="color:#f00;font-weight:800;" title="[% loc('Required') %]">*</span>
+[% END %]
+
+<form id="project_essentials" action="[% action %]" method="POST">
+<script type="text/javascript">
+<!--
+    $(document).ready( function() {
+        $("#name").change( function() {
+            $("#slug").val( $("#name").val().toLowerCase() );
+        } );
+
+        $("#next").click( function() {
+            if( $("#name").attr("value").length < 1 ) {
+                alert( "[% loc('Project Name is required') %]!" );
+            }
+            else if( $("#slug").attr("value").length < 1 ) {
+                alert( "[% loc('Slug is required') %]!" );
+            }
+            else {
+                $("#project_essentials").submit();
+            }
+        } );
+    } );
+-->
+</script>
+
+<dl>
+    <dt>[% loc("Project Name") %] [% required() %]</dt>
+    <dd><input type="text" name="name" size="40" id="name" [% IF (project.name) %]value="[% project.name %]" [% END %]/></dd>
+</dl>
+
+<dl>
+    <dt>[% loc("Email Notification") %] [% required() %] ([% loc("If enabled, notify by email to each project members when new issue was reported.") %])</dt>
+    <dd><input type="radio" name="enable_email" [% IF (project.enable_email) %]checked="checked"[% END %] />[% loc("Enabled") %] <input type="radio" name="enable_email" [% IF (! project.enable_email) %]checked="checked"[% END %]" />[% loc("Disabled") %]</dd>
+</dl>
+
+<dl>
+    <dt>[% loc("Slug") %] [% required() %] ([% loc("Used for URLs and identifiers") %] / [% loc( "alphabet, number, '_' and '-' is allowed") %] )</dt>
+    <dd><input type="text" name="slug" size="40" id="slug" [% IF (project.slug) %]value="[% project.slug %]" [% END %]/></dd>
+</dl>
+
+<dl>
+    <dt>[% loc("Description") %] [% required() %]</dt>
+    <dd><textarea name="description" rows="10" cols="50">[% IF (project.description) %][% project.description %][% END %]</textarea></dd>
+</dl>
+
+<dl>
+    <dt>[% loc("Default Assignment") %]</dt>
+    <dd><input type="text" name="default_assignment" size="40" value="[% project.default_assignment IF project.default_assignment %]"></dd>
+</dl>
+
+<input id="next" type="button" value="[% loc('Next') %]" />
+
+</form>
+

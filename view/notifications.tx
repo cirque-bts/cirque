@@ -1,0 +1,116 @@
+[% WRAPPER 'include/wrapper.tx' %]
+
+
+<script type="text/javascript">
+<!--
+
+function notifications_append( offset ) {
+    var limit = 20;
+    $.ajax({
+        url: '/api/issue/action',
+        dataType: 'json',
+        traditional: true,
+        async: false,
+        data: {
+            slug: [ [% FOREACH i IN my_projects %]"[% i.slug %]"[% ',' UNLESS loop.last() %][% END %] ],
+            limit: limit,
+            offset: offset,
+        },
+        success: function(json){
+            var actions = json.actions;
+            for ( var i in actions ) {
+                var row_class = 'flip';
+                var action = actions[i];
+                var is_last = 0;
+                if ( i % 2 == 0 ) {
+                    row_class = 'flop';
+                }
+                $('#notifications_foot').before(' \
+                    <tr class="'+ row_class +'"> \
+                        <td width="10%"> \
+                            <span class="coloricon bround5" style="background-color:#'+ action.project_id.substr(0,6) +'"></span> \
+                            <span class="project_name"><a href="/project/'+ project[action.project_id].slug +'">'+ project[action.project_id].name +'</a></span> \
+                        </td> \
+                        <td width="10%"> \
+                            <span class="issue_id"><a href="/issue/'+ action.issue_id +'">#'+ action.issue_id +'</a></span> \
+                        </td> \
+                        <td width="15%"> \
+                            <img class="notifications_avatar avatar" mail="'+ action.author +'"><a href="/member/'+ action.author +'">'+ action.author +'</a> \
+                        </td> \
+                        <td width="10%"> \
+                            <span class="action_type">'+ action.action +'</span> \
+                        </td> \
+                        <td width="25%"> \
+                            <span class="message">'+ action.message +'</span> \
+                        </td> \
+                        <td width="20%"> \
+                            <span class="created_on">'+ action.created_on +'</span> \
+                        </td> \
+                    </tr> \
+                ');
+            }
+
+            if ( actions.length > 0 ) {
+                var next_offset = offset + limit;
+                $('#notifications_foot').before('<tr class="more"><th colspan="6"><img src="/static/images/clock.gif"></th></tr>');
+
+                when_visible( $('tr.more'), function( e ){ 
+                    e.remove();
+                    notifications_append( next_offset );
+                } );
+            }
+
+            $('.notifications_avatar').each(function(i, elem) {
+                var e = $(elem);
+                show_avatar(e, e.attr('mail'));
+            });
+        },
+    });
+}
+
+function notifications_init() {
+    notifications_append(0);
+}
+
+function when_visible ( e, code ) {
+    var timer;
+    timer = setInterval(function(){
+        var top_offset = e.offset().top;
+        var window_height = $(window).height();
+        if ( top_offset < window_height ) {
+            clearTimeout( timer );
+            code( e );
+        }
+    },300);
+    
+}
+
+$(document).ready( function(){
+    notifications_init();
+} );
+
+-->
+</script>
+
+<h2>[% loc('Notify List') %]</h2>
+
+<div>
+    <table width="100%" cellspacing=0>
+        <tr class="table_header">
+            <th width="10%">[% loc('Project') %]</th>
+            <th width="10%">[% loc('Issue') %]ID</th>
+            <th width="15%">[% loc('Author') %]</th>
+            <th width="10%">[% loc('Action') %]</th>
+            <th width="25%">[% loc('Message') %]</th>
+            <th width="20%">[% loc('Created On') %]</th>
+            <th class="pad">&nbsp;</th>
+        </tr>
+    </table>
+</div>
+<div class="scrollable" style="max-height:480px;">
+    <table id="notifications" width="100%" cellspacing=0>
+        <tr id="notifications_foot"><th colspan=6></th></tr>
+    </table>
+</div>
+
+[% END %]

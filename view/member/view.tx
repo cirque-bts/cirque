@@ -1,0 +1,138 @@
+[% WRAPPER 'wrapper.tx' %]
+
+<script type="text/javascript">
+<!--
+$(document).ready(function(){
+    $('.editable').attr('title','[% loc('Click to Edit') %]');
+    $('.editable').click(function(){
+        $(this).hide();
+        $($($(this).parent().get(0)).children('.editview').get(0)).show();
+        $('#essentials input[type=submit]').show();
+    });
+    show_avatar('#avatar', '[% user.account_id %]');
+});
+-->
+</script>
+
+<style type="text/css">
+<!--
+
+#essentials {
+    height: 160px;
+}
+
+.editable {
+    cursor: pointer;
+}
+
+.editview {
+    display: none;
+}
+
+.sidebyside dd {
+    width: 300px;
+}
+
+.actions {
+    width: 100%;
+}
+
+.action td {
+    padding: 0.6em;
+}
+
+span.submenu {
+    font-size: 0.6em;
+    font-weight: 200;
+}
+
+-->
+</style>
+
+<h2>
+    <span class="float"><img id="avatar" class="avatar"></span>
+    <span class="float">[% user.name %]</span>
+</h2>
+
+<div id="essentials" class="bround5 border term">
+    <h3>
+        [% loc('Essentials') %]
+        <span class="submenu">
+            [% IF change_password %]<a href="/account/change_password">[% loc('Change password') %]</a>[% END %]
+            [% IF delete_account %]<a href="/account/delete_account">[% loc('Delete this account') %]</a>[% END %]
+        </span>
+    </h3>
+    <form action="/member/[% user.account_id %]/edit" method="POST">
+        <dl class="sidebyside">
+            <dt class="title">[% loc('Name') %]</dt>
+            <dd>
+                <span [% IF user.account_id == member.email %]class="editable"[% END %]>[% user.name %]</span>
+                <span class="editview"><input type="text" name="name" value="[% user.name %]"></span>
+            </dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt class="title">[% loc('Mail') %]</dt>
+            <dd>
+                <span>[% user.account_id %]</span>
+            </dd>
+        </dl>
+        [% IF user.account_id == member.email %]
+        <dl class="sidebyside">
+            <dt class="title">[% loc('Icon') %]</dt>
+            <dd>
+                <span class="editable">[% user.icon %]</span>
+                <span class="editview"><input type="text" name="icon" value="[% user.icon %]"></span>
+            </dd>
+        </dl>
+        <p class="term">
+            <input class="hidden" type="submit" value="[% loc('Commit Changes') %]"> 
+        </p>
+        [% END %]
+    </form>
+</div>
+
+<div id="info" class="bround5 border">
+    <h3>[% loc('Projects') %]</h3>
+    <ul class="projects">
+        [% FOREACH project IN project_joined %]
+        <li><a href="/project/[% project.slug %]">[% project.name %]</a></li>
+        [% END %]
+    </ul>
+</div>
+
+<div id="history" class="border bround5">
+    <h3>[% loc('History') %]</h3>
+    <div id="history_header">
+        <table class="actions" cellspacing=0>
+            <tr class="table_header">
+                <th width="15%">[% loc('Project') %]</th>
+                <th width="10%">[% loc('Issue') %] ID</th>
+                <th width="20%">[% loc('Action') %]</th>
+                <th width="40%">[% loc('Message') %]</th>
+                <th width="15%">[% loc('Created on') %]</th>
+            </tr>
+        </table>
+    </div>
+    <div id="history_body" class="scrollable" style="max-height:440px;">
+        <table class="actions" cellspacing=0>
+            [% var = 0 %]
+            [% FOREACH action IN actions %]
+            [% var = var + 1 %]
+            [% class = 'flip' %]
+            [% class = 'flop' IF var % 2 == 0 %]
+            <tr class="action [% class %]" id="action_[% action.id %]">
+                <td width="15%">
+                    <span class="coloricon bround5" style="background-color:#[% action.project_id.substr(0,6) %];"></span>
+                    <a href="/project/[% projects.${action.project_id}.slug %]">[% projects.${action.project_id}.name %]</a>
+                </td>
+                <td width="10%"><a href="/issue/[% action.issue_id %]">#[% action.issue_id %]</a></td>
+                <td width="20%">[% action.action %]</td>
+                <td width="40%">[% action.message %]</td>
+                <td width="15%">[% action.created_on %]</td>
+            </tr>
+            [% END %]
+        </table>
+    </div>
+</div>
+
+[% END %]

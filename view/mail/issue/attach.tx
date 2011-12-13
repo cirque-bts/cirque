@@ -1,0 +1,7 @@
+[% INCLUDE 'header.tx' %]
+[% action.author %] added attachment '[% filename %]'.
+
+Issue URL: [% domain.web %]/issue/[% issue.id %]
+
+[% INCLUDE 'sign.tx' %]
+

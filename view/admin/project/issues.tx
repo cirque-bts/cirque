@@ -1,0 +1,4 @@
+[% WRAPPER "wrapper.tx" %]
+[% SET title = mark_raw( project.name _ ' Issues <span style="font-size: 9pt">[<a href="/project/' _ project.slug _ '/issue/report">' _ loc("New issue") _ '</a>] [<a href="/admin/project/' _ project.slug _ '">' _ loc("Project page") _ '</a>]</span>' ) %]
+[% INCLUDE "issue_list.tx" WITH issue_table_title = title %]
+[% END %]

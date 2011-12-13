@@ -1,0 +1,195 @@
+[% WRAPPER 'include/wrapper.tx' %]
+
+<link type="text/css" rel="stylesheet" href="/static/css/sh/shThemeDefault.css"/>
+
+<script type="text/javascript">
+<!--
+
+function make_summary () {
+    var str = '';
+    var linkid;
+    var iter = 0;
+    $('#manual > *').each( function () {
+        if ( this.tagName.match(/^h[1-3]$/i) && !$(this).attr('class') ) {
+            linkid = $.base64Encode($(this).text()) + iter;
+            $('#index').append('<' + this.tagName + '><a href="#' + linkid + '" onclick="summary_highlight(\'' + linkid + '\');">' + $(this).text() + '</a></' + this.tagName + '>');
+            $(this).attr( 'id', linkid );
+            $(this).append(' <a href="#manual_title" title="Jump to header">&uarr;</a> <a href="/man/[% manual_title %]#' + linkid + '">[permalink]</a>');
+            iter++;
+        }
+    } );
+    if ( location.hash ){
+        var anchor_id = location.hash.replace('#','');
+        summary_highlight( location.hash );
+        move_to(anchor_id);
+    }
+}
+
+function summary_highlight( id ) {
+    var elem = $('#' + id);
+    var oldBG = elem.css('background-color');
+    var newBG = '#FF6600';
+    elem.css('background-color', newBG);
+    elem.animate( {
+        'background-color': oldBG
+    }, 2000 );
+}
+
+function move_to( id ) {
+    var obj = document.getElementById( id );
+    scrollTo(0, obj.offsetTop);
+}
+
+$(document).ready(function(){
+    $('#manual > pre').each( function(){
+        $(this).html( $(this).text() );
+    } );
+    $('#manual > pre').attr('class', 'brush: perl');
+    SyntaxHighlighter.all();
+    make_summary();
+});
+
+-->
+</script>
+
+<style>
+<!--
+
+#manual {
+    color: #333333;
+    padding: 1em;
+}
+
+#manual p {
+    margin-left: 2em;
+    margin-right: 2em;
+}
+
+#manual strong {
+    color: #993300;
+}
+
+#manual h1 {
+    color: #ffffff;
+    font-size: 1.6em;
+    font-weight: 600;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    background-color: #999999;
+    border: 1px solid #cccccc;
+    padding: 0.8em;
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+}
+
+#manual h2 {
+    font-size: 1.3em;
+    color: #666666;
+    border-left: 0.5em double #ccc;
+    border-bottom: 1px solid #ccc;
+    padding: 0.7em;
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+}
+
+#manual h3 {
+    font-size: 1.2em;
+    color: #666666;
+    font-weight: 400;
+    padding: 0.5em;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    background-color: #ffffff;
+    border: 1px solid #cccccc;
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+}
+
+#manual pre {
+    padding: 1.0em;
+    border: 1px solid #cccccc;
+    margin: 2em;
+}
+
+#manual .title {
+    font-size: 1.8em;
+    font-weight: 500;
+    color: #666666;
+    background-color: #ffffff;
+    -moz-border-radius: 0px;
+    -webkit-border-radius: 0px;
+    border-radius: 0px;
+    border: 0px;
+    border-left: 1em solid #cccccc;
+    margin-top: 0em;
+}
+
+#manual ul {
+    padding-bottom: 1.2em;
+}
+
+#manual .syntaxhighlighter {
+    border: 1px solid #cccccc;
+}
+
+#manual code {
+    font-family: monospace;
+    border: 1px solid #cccccc;
+    margin-left: 0.3em;
+    margin-right: 0.3em;
+}
+
+#manual h1 a,
+#manual h2 a,
+#manual h3 a {
+    text-decoration: none;
+}
+
+#index {
+    border: 1px solid #cccccc;
+    max-width: 450px;
+    margin-left: 20px;
+    height: auto;
+    padding: 1.5em;
+}
+
+#index h1,
+#index h2,
+#index h3 {
+    margin: 0.2em;
+    border: 0em;
+    padding: 0.2em;
+    color: #333333;
+    background-color: #ffffff;
+    font-size: 1.0em;
+    font-weight: 100;
+    -moz-border-radius: 0px;
+    -webkit-border-radius: 0px;
+    border-radius: 0px;
+}
+
+#index h1 {
+    padding-left: 0em;
+}
+
+#index h2 {
+    padding-left: 2em;
+}
+
+#index h3 {
+    padding-left: 4em;
+}
+
+-->
+</style>
+
+<div id="manual">
+<h1 id="manual_title" class="title">[% manual_title %] - Cirque Manual</h1>
+<div id="index" class="bround5">
+</div>
+[% manual | markdown %]
+</div>
+
+[% END %]

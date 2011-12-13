@@ -1,0 +1,240 @@
+[% MACRO fmt_issue_val(value) BLOCK %]
+[% IF (value) %][% loc(value) %][% ELSE %]<span class="undefined">([% loc("undefined") %])</span>[% END %]
+[% END %]
+
+<style type="text/css">
+<!--
+    .editview { display: none }
+    .undefined {
+        color: #ccc;
+        font-style: italic;
+    }
+-->
+</style>
+
+<div id="issue_title" style="margin-bottom: 3em">
+[% IF (issue.id) %]
+    <p><span class="issue_id">[% issue.id %]</span> <span class="issue_title_text">[% issue.title %]</span></p>
+[% END %]
+    <p><span style="font-size:1.2em;font-weight:500;"><a href="#">[% project.name %]</a> &gt;&gt; [<a href="#">[% loc("New issue") %]</a>]</span></p>
+</div>
+
+
+<div id="details" class="bround5">
+<div class="over-border" style="width: 120px; top: -1em">
+    <span class="title">[% loc("Details") %]</span>
+</div>
+
+<div class="left bround5">
+<form id="editdetails" action="#" method="POST">
+    <dl class="sidebyside">
+    <dt>[% loc("Name") %]</dt>
+    <dd><a href="#">[% project.name %]</a> [<a href="#">issues</a>]</dd>
+    </dl>
+
+    <dl class="sidebyside">
+    <dt>[% loc("Issue Type") %]</dt>
+    <dd><span class="editable">[% issue.issue_type %]</span>
+    <span class="editview">
+        <select name="issue_type">
+        [% FOREACH type IN [ 'bug', 'feature', 'improvement', 'wishlist' ] %]
+        <option value="[% type %]"[% IF (issue.issue_type == type) %] selected="selected" [% END %]>[% type %]</option>
+        [% END %]
+        </select>
+    </span>
+    </dd>
+    </dl>
+
+    <dl class="sidebyside">
+    <dt>[% loc("Milestone") %]</dt>
+    <dd><span class="editable">[% milestone.name %]</span>
+    <span class="editview">
+        <select name="milestone_id">
+        [% FOREACH m IN milestones %]
+        <option value="[% m.id %]"[% IF (issue.milestone_id == m.id) %] selected="selected"[% END %]>#[% m.id %] - [% m.name %]</option>
+        [% END %]
+        </select>
+    </span>
+    </dd>
+    </dl>
+
+    <dl class="sidebyside">
+    <dt>[% loc("Assigned To") %]</dt>
+    <dd><span class="editable">[% fmt_issue_val(issue.assigned_to) %]</span>
+    <span class="editview">
+        <input type="text" name="assigned_to" value="[% issue.assigned_to %]" size="20" />
+    </span>
+    </dd>
+    </dl>
+
+    <dl class="sidebyside">
+    <dt>[% loc("Target") %]</dt>
+    <dd><span class="editable">[% fmt_issue_val(issue.target) %]</span>
+    <span class="editview">
+        <input type="text" size="20" name="target" value="[% issue.target %]"/>
+    </span>
+    </dd>
+    </dl>
+
+    <dl class="sidebyside">
+    <dt>[% loc("Version") %]</dt>
+    <dd><span class="editable">[% fmt_issue_val( issue.version ) %]</span>
+    <span class="editview">
+        <input type="text" name="version" value="[% issue.version %]" size="20" />
+    </span>
+    </dd>
+    </dl>
+
+    <dl class="sidebyside">
+    <dt>[% loc("Cc") %]</dt>
+    <dd><span class="editable">[% fmt_issue_val( issue.cc ) %]</span>
+    <span class="editview">
+        <input type="text" name="cc" value="[% issue.cc %]" size="20" />
+    </span>
+    </dd>
+    </dl>
+
+</div>
+<div class="right">
+    <dl class="sidebyside">
+    <dt>[% loc("Severity") %]</dt>
+    <dd><span class="editable">[% fmt_issue_val( issue.severity )%]</span>
+    <span class="editview">
+        <select name="severity">
+        [% FOREACH severity IN [ 'critical', 'major','minor', 'wishlist', 'nitpick' ] %]
+        <option value="[% severity %]"[% IF (issue.severity == severity) %] selected="selected"[% END %]>[% severity %]</option>
+        [% END %]
+        </select>
+    </span>
+    </dd>
+    </dl>
+
+    <dl class="sidebyside">
+    <dt>[% loc("Resolution") %]</dt>
+    <dd><span class="editable">[% fmt_issue_val( issue.resolution ) %]</span>
+    <span class="editview">
+        <select name="resolution">
+            [% FOREACH mode IN [ 'open', 'in-progress', 'verify-fixed', 'fixed', 'closed', 'wontfix', 'dup' ] %]
+            <option value="[% mode %]"[% IF (mode == issue.resolution) %] selected="selected" [% END %]>[% mode %]</option>
+            [% END %]
+        </select>
+    </span>
+    </dd>
+    </dl>
+
+    <dl class="sidebyside">
+    <dt>[% loc("Reported By") %]</dt>
+    <dd>[% issue.author || 'unknown' %]</dd>
+    </dl>
+
+    <dl class="sidebyside">
+    <dt>[% loc("Sub-Issues") %]</dt>
+    <dd>
+        [% IF related.sub_issues.0 %]
+        <span class="editable">
+            [% FOREACH sub_issue IN related.sub_issues %]
+            #[% sub_issue.id %][% UNLESS loop.last %],[% END %]
+            [% END %]
+        </span>
+        [% ELSE %]
+        <span class="undefined editable">([% loc("undefined") %])</span>
+        [% END %]
+        <span id="subissue_input" class="editview">
+            <input type="text" id="subissue" name="subissue" value="[% FOREACH sub_issue IN related.sub_issues %][% sub_issue.id %][% UNLESS loop.last %],[% END %][% END %]">
+        </span>
+    </dd>
+    </dl>
+
+    <dl class="sidebyside">
+    <dt>[% loc("Due on") %]</dt>
+    <dd><span class="editable">[% fmt_issue_val( issue.due_on ) %]</span>
+    <span id="due_on_input" class="editview">
+        <input type="text" id="due_on" name="due_on" value="[% issue.due_on %]" >
+        <input type="button" onclick="$('#due_on').val('')" value="clear">
+    </span>
+    </dd>
+    </dl>
+
+    <dl class="sidebyside">
+    <dt>[% loc("Created On") %]</dt>
+    <dd>[% issue.created_on %]</dd>
+    </dl>
+
+    <dl class="sidebyside">
+    <dt>[% loc("Modified On") %]</dt>
+    <dd>[% issue.modified_on %]</dd>
+    </dl>
+</div>
+
+<input id="commitbutton" type="submit" value="Commit Changes">
+</form>
+<div style="margin-bottom: 0.5em">&nbsp;</div>
+</div>
+
+<div id="files" class="bround5">
+    <h3>[% loc("Files") %]</h3>
+    [% FOREACH file IN files %]
+    <div class="description">
+        <p><span class="author">[% file.author || 'unknown' %]</span></p>
+        <p>attached '[% file.filename %]' ([% file.mimetype %]:[% file.filesize %]Bytes)</p>
+        <p>- [% file.created_on %]</p>
+        [% IF file.mimetype == 'image/jpeg' || file.mimetype == 'image/png' || file.mimetype == 'image/gif' %]
+        <p><a href="#"><img class="attached" src="/attachment/[% file.id %]" /></a> <a href="#">[remove this file]</a></p>
+        [% ELSE %]
+        <p><a href="#">[show this file]</a> <a href="#">[remove this file]</a></p>
+        [% END %]
+    </div>
+    [% END %]
+</div>
+
+<div id="parentissues" class="bround5">
+    <h3>[% loc("Parent-Issues") %]</h3>
+    <div class="description">
+        <ul>
+            [% IF ! related.parent_issues.0 %]<li>[% loc("undefined") %]</li>[% END %]
+            [% FOREACH parent_issue IN related.parent_issues %]
+            <li><a href="#">#[% parent_issue.id %] - [% parent_issue.title %]</a> <span class="[% parent_issue.severity %]">[% parent_issue.severity %]</span> [[% parent_issue.resolution %]]</li>
+            [% END %]
+        </ul>
+    </div>
+</div>
+
+<div id="subissues" class="bround5">
+    <h3>[% loc("Sub-Issues") %]</h3>
+    <div class="description">
+        <ul>
+            [% IF ! related.sub_issues.0 %]<li>[% loc("undefined") %]</li>[% END %]
+            [% FOREACH sub_issue IN related.sub_issues %]
+            <li><a href="#">#[% sub_issue.id %] - [% sub_issue.title %]</a> <span class="[% sub_issue.severity %]">[% sub_issue.severity %]</span> [[% sub_issue.resolution %]]</li>
+            [% END %]
+            <li>[<a href="#" id="make_rel">make relation</a>]</li>
+        </ul>
+    </div>
+</div>
+
+<div id="description" class="bround5">
+    <h3>[% loc("Description") %]</h3>
+    <div style="margin:5px; padding:5px;">[% issue.description | markdown %]</div>
+</div>
+
+<div id="comments" class="bround5">
+    <h3>[% loc("Comments") %]</h3>
+    [% FOREACH comment IN comments %]
+    <div class="description">
+        <p><span class="author">[% comment.author || 'unknown' %]</span> added a comment - [% comment.created_on %]</p>
+        <p>[% comment.body | markdown %]</p>
+    </div>
+    [% END %]
+
+</div>
+
+<div id="actions" class="bround5">
+    <h3>[% loc("Actions") %]</h3>
+    
+    [% FOREACH action IN actions %]
+    <div class="description">
+        <p><span class="author">[% action.author || 'unknown' %]</span> [% action.message | markdown %] - [% action.created_on %]</p>
+    </div>
+    [% END %]
+</div>
+

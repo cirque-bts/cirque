@@ -1,0 +1,128 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    [% FOREACH metatag IN metatags %]
+    <meta[% FOREACH key IN metatag.keys() %] [% key %]="[% metatag.$key %]"[% END %]>
+    [% END %]
+    <script type="text/javascript" src="/static/js/jquery-1.4.4.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.base64.js"></script>
+    <script type="text/javascript" src="/static/js/jquery-ui-1.8.14.custom.min.js"></script>
+    <script type="text/javascript" src="/static/js/jit-yc.js"></script>
+    <link type="text/css" rel="stylesheet" href="/static/css/sh/shCore.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/css/mypage.css" />
+    <link rel="stylesheet" type="text/css" href="/static/css/ui-lightness/jquery-ui-1.8.14.custom.css" />
+    <title>[% IF page.title %]Cirque - [% page.title %][% ELSE %]Cirque - Continuous Development[% END %]</title>
+
+    <script type="text/javascript" src="/static/js/sh/shCore.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushAS3.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushBash.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushColdFusion.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushCSharp.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushCpp.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushCss.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushDelphi.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushDiff.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushErlang.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushGroovy.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushJScript.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushJava.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushJavaFX.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushPerl.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushPhp.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushPython.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushPlain.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushPowerShell.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushRuby.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushScala.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushSql.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushVb.js"></script>
+    <script type="text/javascript" src="/static/js/sh/shBrushXml.js"></script>
+
+    <script type="text/javascript">
+<!--
+
+$.ajaxSetup({ 
+    cache: false,
+    timeout: 20000
+});
+
+function show_avatar( e, mail ) {
+    $.ajax({
+        url: '/api/member/avatar',
+        data: { account_id: mail },
+        dataType: 'json',
+        success: function(json){
+            var url = json.url;
+            $(e).attr('src', url);
+        },
+        error: function(){
+            $(e).attr('src', '/static/images/nobody.png');
+        }
+    });
+}
+
+-->
+    </script>
+</head>
+
+<body>
+
+    <div id="head">
+        [% IF member.author %]
+        <div class="logout"><a href="/logout">[% loc('Logout') %]</a></div>
+        [% END %]
+        <h1>
+            <span class="logo"><img src="/static/images/logo48.png"></span>
+            <span class="member">
+                [% loc("Account") %]: 
+                [% IF member.author %]<span class="clickable" onclick="location.href='/member/[% member.author %]';">[% member.author %]</span>
+                [% ELSE %]anonymous
+                [% END %]
+            </span>
+        </h1>
+        [% IF member %]
+        <div id="admin" class="term">
+            <ul>
+                <li><a href="/admin/project">[% loc('Project Admin') %]</a></li>
+            </ul>
+        </div>
+        [% END %]
+    </div>
+
+    <table cellpsacing=0 class="fullfill">
+        <tr>
+            <td id="left">
+                <div id="caution" class="hidden bround5">CAUTION</div>
+                [% IF member.email %]
+                <p class="topic_title"><a href="/mypage">[% loc('My Page') %]</a></p>
+                <p class="topic_title"><a href="/project/list">[% loc('Projects List') %]</a></p>
+                [%     IF my_projects.0 %]
+                <h2 class="topic_title">[% loc('My Project') %]</h2>
+                <ul id="projects" class="topic_list">
+                    [% FOREACH project IN my_projects %]
+                    <li class="project term">
+                        <p class="project label shadow" style="border-left:3px solid #[% project.id.substr(0,6)%];">
+                            <a href="/project/[% project.slug %]" title="[% project.name %]" style="text-decoration:none;"><span class="whitefont">[% project.name.substr(0,10) %][% '...' IF project.name.length() > 10 %]</span></a>
+                        </p>
+                        <p class="project menu"><a href="/project/[% project.slug %]/issue/report"><img src="/static/images/issue16.png" title="[% loc('New issue') %]"></a></p>
+                    </li>
+                    [% END %]
+                </ul>
+                [%     END %]
+                [% ELSE %]
+                <p class="topic_title"><a href="/login">[% loc('Login') %]</a></p>
+                <p class="topic_title"><a href="/project/list">[% loc('Projects List') %]</a></p>
+                [% END %]
+                <p class="term"></p>
+                [% IF member.email %][% INCLUDE 'notify.tx' WITH projects=my_projects, last_checked=notify_checked %][% END %]
+            </td>
+
+            <td id="main">
+                <div id="content">
+                [% content %]
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

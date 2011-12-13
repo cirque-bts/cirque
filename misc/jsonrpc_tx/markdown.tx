@@ -1,0 +1,37 @@
+[% FOREACH procedure IN procedures %]
+## [% procedure.name %]
+
+[% procedure.description %]
+
+### Request
+
+Example
+
+[% demo(procedure.request) %]
+
+[% SET params = procedure.params %]
+[% FOREACH pair IN params.kv() %]
+[% SET param_name = pair.key %]
+[% SET spec = pair.value %]
+* *[% param_name %]*
+  ([% spec.isa || 'Str' %] [% spec.exists('required') ? ( spec.required ? "**required**" : "optional" ) : "**required**" %])
+
+  [% spec.description %]
+[% END %]
+
+### Response
+
+Example
+
+[% demo(procedure.response) %]
+
+[% SET result = procedure.result %]
+[% FOREACH pair IN result.kv() %]
+[% SET param_name = pair.key %]
+[% SET spec = pair.value %]
+* [% param_name %]
+
+  [% spec.description %]
+[% END %]
+
+[% END %]

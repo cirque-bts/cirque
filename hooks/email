@@ -1,0 +1,87 @@
+#!/usr/bin/env perl
+
+##
+## Email通知サンプル
+##
+
+use strict;
+use Email::Send;
+use Email::Simple;
+use Encode ();
+use JSON ();
+use Text::Xslate;
+
+# 設定項目
+my $config = {
+    'Email::Send' => {
+        mailer => 'Sendmail',
+    },
+    base_url => 'http://bts.example.com',
+    mail_from => 'cirque@bts.example.com',
+};
+
+# 標準入力からJSON形式で通知データを取得し、デシリアライズ。
+my $json = '';
+while ( my $buf = <STDIN> ) {
+    $json .= $buf;
+}
+my $notify = JSON->new->utf8->decode( $json );
+
+# プロジェクトの設定でメール送信を行わない設定になっている場合、処理終了
+exit unless $notify->{project}->{enable_email};
+
+# 通知データからメール送信先を作成。
+my @mail_to = grep { $_ if defined $_ } ( 
+    $notify->{author}, 
+    $notify->{issue}->{assigned_to},
+    map { $_->{account_id} } @{ $notify->{project}->{members} },
+);
+
+# 送信先アドレスがない場合、処理終了
+exit unless @mail_to > 0;
+
+# メール送信用インスタンスとテンプレートの用意
+my $sender = Email::Send->new( $config->{'Email::Send'} );
+my $xslate = Text::Xslate->new( syntax => 'TTerse', type => 'text' );
+my $template = '';
+while ( my $buf = <DATA> ) {
+    $template .= $buf;
+}
+
+# テンプレートに通知データを適用
+my $str = $xslate->render_string( $template, { 
+    %$notify,
+    config => $config,
+    subject => sprintf( '[%s:%d] #%d %s', 
+        $notify->{project}->{name},
+        $notify->{id},
+        $notify->{issue}->{id},
+        $notify->{issue}->{title},
+    ),
+} );
+
+# 出来上がったメール本文を解析し、文字コード変換/Content-typeの追加/送信先アドレスの設定を行う
+my $email = Email::Simple->new( Encode::encode_utf8( $str ) );
+$email->header_set( 'Content-Type' => 'text/plain; charset=ISO-2022-JP' );
+$email->header_set( To => join ',', @mail_to );
+$email->header_set( Subject => Encode::encode( 'iso-2022-jp', $email->header('Subject') ) );
+$email->body_set( Encode::encode( 'iso-2022-jp', $email->body ) );
+
+# メール本文を送信する
+$sender->send( $email->as_string );
+
+__DATA__
+From: [% config.mail_from %]
+Subject: [% subject %]
+X-Cirque-Action: [% action %]
+X-Cirque-Project-URL: [% config.base_url %]/project/[% project.slug %]
+X-Cirque-Issue-URL: [% config.base_url %]/issue/[% issue.id %]
+X-Cirque-Project-Slug: [% project.slug %]
+
+プロジェクト [% project.name %]
+イッシュー #[% issue.id %]
+
+[% author %] : [% message %]
+
+イッシューURL: [% config.base_url %]/issue/[% issue.id %]
+

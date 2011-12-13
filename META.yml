@@ -1,0 +1,59 @@
+---
+abstract: ~
+build_requires:
+  ExtUtils::MakeMaker: 6.42
+  File::Slurp: 0
+  Net::LDAP::Server::Test: 0
+  Proc::Guard: 0
+  Test::Mock::Guard: 0
+  Test::TCP: 0
+  Test::WWW::Mechanize: 1.38
+  Test::mysqld: 0
+  YAML: 0
+configure_requires:
+  ExtUtils::MakeMaker: 6.42
+distribution_type: module
+generated_by: 'Module::Install version 1.01'
+license: unknown
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Cirque
+no_index:
+  directory:
+    - inc
+    - t
+requires:
+  Cache::Memcached::Fast: 0
+  Class::Accessor::Lite: 0
+  Data::FormValidator: 0
+  Data::Localize: 0
+  Data::Recursive::Encode: 0
+  Data::UUID: 0
+  Digest::MD5: 0
+  Email::Address::Loose: 0
+  Email::Send: 0
+  Email::Simple: 0
+  Furl: 0
+  HTML::FillInForm: 0
+  HTML::Scrubber: 0
+  JSON::RPC: 1
+  JSON::XS: 0
+  MIME::Base64: 0
+  Mouse: 0.91
+  Mouse::Util::TypeConstraints: 0
+  MouseX::Foreign: 0
+  Net::LDAP: 0
+  Plack: 0
+  Plack::App::Proxy: 0
+  Plack::Builder::Conditionals: 0
+  Plack::Middleware::Session: 0
+  Router::Simple: 0
+  Server::Starter: 0
+  Starlet: 0
+  String::Urandom: 0
+  Teng: 0
+  Text::MultiMarkdown: 0
+  Text::Xslate: 1.5005
+  Text::Xslate::Bridge::TT2Like: 0
+version: 0.01

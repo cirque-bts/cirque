@@ -1,0 +1,8 @@
+<h2>#<span id="selected">[% issue.id %]</span> - [% issue.title %]</h2>
+<dl class="sidebyside">
+  <dt>[% loc("Name") %]</dt><dd>[% project.name %]</dd>
+  <dt>[% loc("Severity") %]</dt><dd class="[% issue.severity %]">[% issue.severity %]</dd>
+  <dt>[% loc("Resolution") %]</dt><dd>[% issue.resolution %]</dd>
+  <dt>[% loc("Due on") %]</dt><dd>[% issue.due_on || '(' _ loc("undefined") _ ')' %]</dd>
+</dl>
+

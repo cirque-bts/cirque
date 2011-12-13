@@ -1,0 +1,17 @@
+[% INCLUDE 'header.tx' %]
+[% action.author %] made sub-issue relation.
+
+--------------------------------------------------
+Issue #[% subissue.id %] - [% subissue.title %]
+
+Project: [% project.name %]
+Severity: [% subissue.severity %]
+Assigned to: [% subissue.assigned_to || '(undefined)' %]
+Reported by: [% subissue.author %]
+Due on: [% subissue.due_on || '(undefined)' %]
+--------------------------------------------------
+
+Sub-Issue URL: [% domain.web %]/issue/[% subissue.id %]
+
+[% INCLUDE 'sign.tx' %]
+

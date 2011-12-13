@@ -1,0 +1,15 @@
+[% WRAPPER 'wrapper.tx' %]
+<a href="/man/Beginners_01"><img src="/static/images/for_beginner.png"></a>
+[% INCLUDE 'search_gadget_header.tx' %]
+
+[% MACRO search_gadget( id, query ) BLOCK %]
+[% INCLUDE 'search_gadget.tx' WITH id=id, query=query %]
+[% END %]
+
+[% search_gadget( '0', {} ) %]
+
+[% FOREACH query IN saved_queries %]
+[% search_gadget( query.id, query ) %]
+[% END %]
+
+[% END %]

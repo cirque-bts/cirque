@@ -1,0 +1,201 @@
+<script type="text/javascript">
+<!--
+    $(document).ready( function() {
+        $([ "id", "project_id", "severity", "title", "resolution", "issue_type", "assigned_to", "version", "milestone", "due_on" ]).each( function(i, col) {
+            $("#" + col + "_order").click( function(ev) {
+                var uri = location.href;
+console.log(uri);
+                uri = uri.replace( /#.*/, '' );
+                var parts = uri.split( /\?/ );
+                var q = parts[1];
+                var pairs = q == null ? [] : q.split( /&/ );
+                var params = {};
+                $(pairs).each( function(i, pair) {
+                    var kv = pair.split(/=/);
+                    params[ kv[0] ] = kv[1];
+                } );
+
+                if (params[ "sortcol" ] == col) {
+                    var order = params[ "sortorder" ];
+                    if (order == null || order.match(/desc/i) ) {
+                        params["sortorder"] = "asc";
+                    } else {
+                        params["sortorder"] = "desc";
+                    }
+                } else {
+                    params["sortcol"] = col;
+                }
+
+                var query = [];
+                $.each( params, function(k, v) {
+                    query.push(
+                        encodeURIComponent(k) + '=' + encodeURIComponent(v)
+                    );
+                } )
+                location.href = parts[0] + '?' + query.join('&');
+                return false;
+            } );
+        } );
+        var now = new Date().getTime();
+        $('td.due_on').each( function () {
+            var due_on = Date.parse( $(this).text() );
+            var parent_id = 'issue_'+$(this).attr('issue');
+            var resolution = $(this).attr('resolution');
+            if ( resolution != 'verify-fixed' &&  resolution != 'fixed' && resolution != 'closed' && resolution != 'dup' ) {
+                if ( due_on < now ) {
+                    $('#'+parent_id).attr('class', 'out');
+                }
+                else if ( due_on - now < 86400000 * 3 ) {
+                    $('#'+parent_id).attr('class', 'warning');
+                }
+            }
+            else {
+                $('#'+parent_id).attr('class', resolution);
+            }
+        } );
+    } );
+-->
+</script>
+<style type="text/css">
+<!--
+#issues {
+    padding: 1em;
+}
+#legend ul {
+    list-style: none;
+}
+#legend ul li {
+    display: block;
+    float: left;
+    padding: 5px; 
+    margin: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+}
+#legend ul .label {
+    font-size: 1.2em;
+    padding-left: 0px;
+    margin-left: 0px;
+}
+#issue_list {
+    clear: both;
+    width: 100%;
+    border: 0px;
+}
+#issue_list tr th,
+#issue_list tr td {
+    padding: 0.6em;
+}
+
+.table_header {
+    background-color: #333333;
+}
+
+.table_header a {
+    color: #ffffee;
+}
+
+.coloricon {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #333333;
+    display: block;
+    float: left;
+    margin-right: 4px;
+}
+
+.flip {
+    background-color: #f6f6f6;
+    color: #333333;
+}
+.flop {
+    background-color: #e7e7e7;
+    color: #333333;
+}
+
+.out {
+    color: #cc3300;
+    font-weight: 600;
+    background-color: #ffcccc;
+}
+.warning {
+    background-color: #ffffcc;
+}
+.verify-fixed {
+    color: #006699;
+    background-color: #ddffdd;
+}
+.fixed {
+    color: #999999;
+    background-color: #ffffff;
+    border-bottom: 1px solid #eeeeee;
+}
+.closed {
+    color: #ccccbb;
+    background-color: #666666;
+}
+.closed a {
+    color: #ccddbb;
+}
+.dup {
+    background-color: #eeeeff;
+}
+
+-->
+</style>
+
+<div id="issues">
+    <h2>
+        [% issue_table_title %]
+        <span style="font-size: 9pt"> 
+            [<a href="[% IF project.slug %]/admin/project/[% project.slug %][% END %]/issues?resolution=all">[% loc("Show all issues") %]</a>] 
+            [<a href="[% IF project.slug %]/admin/project/[% project.slug %][% END %]/issues">[% loc("Show active issues") %]</a>]
+        </span>
+    </h2>
+
+    <div id="legend">
+        <ul>
+            <li class="label">[% loc("Legend") %] : </li>
+            <li class="out">[% loc("Past Due Date") %]</li>
+            <li class="warning">[% loc("Approaching Due Date") %]</li>
+            <li class="verify-fixed">[% loc("Verify Fixed") %]</li>
+            <li class="fixed">[% loc("Fixed") %]</li>
+            <li class="closed">[% loc("Closed") %]</li>
+            <li class="dup">[% loc("Duplicate") %]</li>
+        </ul>
+    </div>
+
+    <table id="issue_list" cellspacing=0>
+        <tr class="table_header">
+            <th><a href="#" id="id_order">[% loc("Issue ID") %]</a></th>
+            <th><a href="#" id="project_id_order">[% loc("Project") %]</a></th>
+            <th><a href="#" id="severity_order">[% loc("Severity") %]</a></th>
+            <th><a href="#" id="title_order">[% loc("Title") %]</a></th>
+            <th><a href="#" id="resolution_order">[% loc("Resolution") %]</a></th>
+            <th><a href="#" id="issue_type_order">[% loc("Issue Type") %]</a></th>
+            <th><a href="#" id="assigned_to_order">[% loc("Assigned To") %]</a></th>
+            <th><a href="#" id="version_order">[% loc("Version") %]</a></th>
+            <th><a href="#" id="milestone_order">[% loc("Milestone") %]</a></th>
+            <th><a href="#" id="due_on_order">[% loc("Due on") %]</a></th>
+        </tr>
+        [% FOREACH issue IN issues %]
+        <tr id="issue_[% issue.id %]" class="[% IF loop.index % 2 %]flip[% ELSE %]flop[% END %]">
+            <td>#[% issue.id %]</td>
+            <td>
+                <span class="coloricon bround5" style="background-color:#[% issue.project_id.substr(0,6) %];"></span>
+                [% IF project.slug %]<a href="/admin/project/[% project.slug %]">[% project.name %]</a>
+                [% ELSE %]<a href="/admin/project/[% project.${issue.project_id}.slug %]">[% project.${issue.project_id}.name %]</a>
+                [% END %]
+            </td>
+            <td><span class="[% issue.severity %]">[% issue.severity %]</td>
+            <td><a href="/issue/[% issue.id %]">[% issue.title OR '(' _ loc("undefined") _ ')' %]</a></td>
+            <td><img src="/static/images/status_[% issue.resolution %].png"> [% loc(issue.resolution) %]</td>
+            <td>[% loc(issue.issue_type) %]</td>
+            <td>[% IF issue.assigned_to %]<img src="/static/images/user16.png"> <a href="/member/[% issue.assigned_to %]">[% issue.assigned_to %]</a>[% END %]</td>
+            <td>[% issue.version %]</td>
+            <td><a[% IF issue.milestone != 'Not defined' %] href="/admin/project/[% slug || project.${issue.project_id}.slug %]/edit/milestone/[% issue.milestone_id %]"[% END %]>[% issue.milestone %]</a></td>
+            <td class="due_on" issue="[% issue.id %]" resolution="[% issue.resolution %]">[% IF issue.due_on %]<img src="/static/images/clock16.png"> [% issue.due_on.substr(0,10) %][% END %]</td>
+        </tr>
+        [% END %]
+    </table>
+</div>

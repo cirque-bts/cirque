@@ -1,0 +1,113 @@
+[% WRAPPER "wrapper.tx" %]
+
+<style type="text/css">
+<!--
+
+.container {
+    padding: 1.0em;
+}
+
+th.critical {
+    color: #ffffee;
+}
+
+.projects {
+    width: 100%;
+}
+
+.projects tr th,
+.projects tr td {
+    padding: 0.6em;
+}
+
+.coloricon {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #333333;
+    display: block;
+    float: left;
+    margin-right: 4px;
+}
+
+.param.name {
+    width: 20%;
+}
+
+.param.description {
+    width: 30%;
+}
+
+.param.members {
+    width: 10%;
+}
+
+.param.action {
+    width: 10%;
+}
+
+th.param.issuesum {
+    width: 5%;
+}
+td.param.issuesum {
+    text-align: right;
+}
+
+-->
+</style>
+
+[% MACRO project_view_header() BLOCK %]
+    <tr class="table_header">
+        <th class="param name">[% loc('Name') %]</th>
+        <th class="param description">[% loc('Description') %]</th>
+        <th class="param issuesum open">open</th>
+        <th class="param issuesum critical">critical</th>
+        <th class="param issuesum major">major</th>
+        <th class="param issuesum minor">minor</th>
+        <th class="param issuesum nitpick">nitpick</th>
+        <th class="param issuesum wishlist">wishlist</th>
+        <th class="param members">[% loc('Members') %]</th>
+        <th class="param action">[% loc('Action') %]</th>
+    </tr>
+[% END %]
+
+[% MACRO project_view( p, class ) BLOCK %]
+    <tr class="project [% class %]">
+        <td class="param name">
+            <span class="coloricon bround5" style="background-color:#[% p.id.substr(0,6) %];"></span>
+            <a href="/admin/project/[% p.slug %]">[% p.name %]</a>
+        </td>
+        <td class="param description">[% p.description %]</td>
+        <td class="param issuesum open"><a href="/project/[% p.slug %]?resolution=open">[% p.issue_summary.total_open %]</a></td>
+        <td class="param issuesum critical"><a href="/project/[% p.slug %]?severity=critical&resolution=open">[% p.issue_summary.total_critical %]</a></td>
+        <td class="param issuesum major"><a href="/project/[% p.slug %]?severity=major&resolution=open">[% p.issue_summary.total_major %]</a></td>
+        <td class="param issuesum minor"><a href="/project/[% p.slug %]?severity=minor&resolution=open">[% p.issue_summary.total_minor %]</a></td>
+        <td class="param issuesum nitpick"><a href="/project/[% p.slug %]?severity=nitpick&resolution=open">[% p.issue_summary.total_nitpick %]</a></td>
+        <td class="param issuesum wishlist"><a href="/project/[% p.slug %]?severity=wishlist&resolution=open">[% p.issue_summary.total_wishlist %]</a></td>
+        <td class="param members"><img src="/static/images/user16.png"> [% p.members.size() %]</td>
+        <td class="param action"><a href="/project/[% p.slug %]/issue/report">[% loc('New issue') %]</a></td>
+    </tr>
+[% END %]
+
+<h2>[% loc("Projects") %]</h2>
+<table class="projects" cellspacing=0>
+    [% IF projects.0 %][% project_view_header() %]
+    [% ELSE %][% loc('Projects are not exists yet.') %]
+    [% END %]
+    [% val = 0 %]
+    [% FOREACH project IN projects %]
+      [% val = val + 1 %]
+      [% class = 'flip' %]
+      [% class = 'flop' IF val % 2 == 0 %]
+      [% project_view(project, class) %]
+    [% END %]
+</table>
+
+<div class="large_button bround5">
+[% IF member %]
+    <a href="/admin/project/create">[% loc("Create New Project") %]</a>
+[% ELSE %]
+    <a href="/login">[% loc("Login") %]</a>
+[% END %]
+</div>
+
+[% END %]

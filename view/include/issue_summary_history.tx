@@ -1,0 +1,103 @@
+<script type="text/javascript" src="/static/js/highcharts-2.1.7/highcharts.js"></script>
+<script type="text/javascript" src="/static/js/highcharts-2.1.7/themes/gray.js"></script>
+<script type="text/javascript">
+<!--
+
+Highcharts.setOptions(Highcharts.theme);
+
+var max_issues = 0;
+
+function build_series ( data ) {
+    var critical = { name: 'critical', color: '#ff0000', data: [] };
+    var major    = { name: 'major', color: '#990099', data: [] };
+    var minor    = { name: 'minor', color: '#ff9900', data: [] };
+    var nitpick  = { name: 'nitpick', color: '#6699ff', data: [] };
+    var wishlist = { name: 'wishlist', color: '#99cc66', data: [] };
+    for ( var i in data.position ) {
+        var max_is = Math.max( 
+            data.critical[i],
+            data.major[i],
+            data.minor[i],
+            data.nitpick[i],
+            data.wishlist[i]
+        );
+        if ( max_issues < max_is ) {
+            max_issues = max_is;
+        }
+        critical.data.push( {
+            name: data.logged_on[i],
+            x: data.position[i],
+            y: data.critical[i]
+        } );
+        major.data.push( {
+            name: data.logged_on[i],
+            x: data.position[i],
+            y: data.major[i]
+        } );
+        minor.data.push( {
+            name: data.logged_on[i],
+            x: data.position[i],
+            y: data.minor[i]
+        } );
+        nitpick.data.push( {
+            name: data.logged_on[i],
+            x: data.position[i],
+            y: data.nitpick[i]
+        } );
+        wishlist.data.push( {
+            name: data.logged_on[i],
+            x: data.position[i],
+            y: data.wishlist[i]
+        } );
+    }
+    return [ critical, major, minor, nitpick, wishlist ];
+}
+
+function history_chart_spline ( e, width, height ) {
+    $.ajax({
+        type: 'POST',
+        url: '/api/project/issue_summary_history',
+        dataType: 'json',
+        data: {
+            slug: '[% slug %]',
+        },
+        success: function( json ){
+            var data = json.data;
+            var series = build_series( data );
+            var ish_line = new Highcharts.Chart({
+                chart: {
+                    type: 'spline',
+                    renderTo: e,
+                    width: width,
+                    height: height
+                },
+                xAxis: {
+                    title: {
+                        text: '[% loc('Date') %]',
+                        type: 'datetime',
+                    }
+                },
+                yAxis: [
+                    {
+                        max: Math.ceil( max_issues * 1.1 ),
+                        min: 0,
+                        title: {
+                            text: '[% loc('Issues') %]'
+                        }
+                    }
+                ],
+                title: {
+                    text: '[% loc('History of Issue Summary') %]'
+                },
+                series: series
+            });
+        },
+        error: function (xhr, status, error) {
+            console.log( error );
+        }
+    });
+}
+
+-->
+</script>
+

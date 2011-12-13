@@ -1,0 +1,17 @@
+[% INCLUDE 'header.tx' %]
+
+[% loc('New issue was reported.') %]
+
+[% domain.web %]/issue/[% issue.id %]
+
+[% loc('Project') %]: [% project.name %]
+[% loc('Issue') %]: #[% issue.id %] - [% issue.title %]
+[% loc('Reported By') %]: [% action.author %]
+[% loc('Severity') %]: [% issue.severity %]
+[% loc('Assigned To') %]: [% issue.assigned_to || '(undefined)' %]
+[% loc('Due on') %]: [% issue.due_on || loc('undefined') %]
+
+[% issue.description %]
+
+[% INCLUDE 'sign.tx' %]
+

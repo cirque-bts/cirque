@@ -1,0 +1,572 @@
+<script type="text/javascript">
+<!--
+
+var projects;
+var row_class = 'flip';
+var issue_rows_block = 50;
+var milestone_loader;
+var timers = {};
+
+function toggle_gadget( id ) {
+    var e = $('#rt_'+id); 
+    if ( e.attr('submenu') == 0 ) {
+        $('#rt_'+id+' > form div.hidden').css('display', 'block');
+        $('#toggle_button_'+id+' > img').attr('src', '/static/images/arrow-up.png');
+        e.attr('submenu', 1);
+    }
+    else {
+        $('#rt_'+id+' > form div.hidden').css('display', 'none');
+        $('#toggle_button_'+id+' > img').attr('src', '/static/images/arrow-down.png');
+        e.attr('submenu', 0);
+    }
+}
+
+function change_sort ( id, n ) {
+    var gadget = $('div#rt_'+id);
+    var name = $(n).attr('name');
+    if ( gadget.attr('sortcol') == name ) {
+        if ( gadget.attr('sortorder') == 'ASC' ) {
+            gadget.attr( 'sortorder', 'DESC' );
+        }
+        else {
+            gadget.attr( 'sortorder', 'ASC' );
+        }
+    }
+    else {
+        gadget.attr( 'sortcol', name );
+        gadget.attr( 'sortorder', 'ASC' );
+    }
+    $('#sort_'+id).remove();
+    search_issue( id, gadget.attr('sortcol'), gadget.attr('sortorder') );
+}
+
+function toggle_all_checkbox ( id, elem ) {
+    var e = $(elem);
+    if( e.text() == '+' ) {
+        e.text( '-' );
+        $('div#result_'+ id +' > table.issues > tbody > tr > td.check > input[type=checkbox]').attr('checked', 'checked');
+    }
+    else {
+        e.text( '+' );
+        $('div#result_'+ id +' > table.issues > tbody > tr > td.check > input[type=checkbox]').attr('checked', false);
+    }
+}
+
+function change_issue_status ( gadget_id, resolution ) {
+    var id_list = get_checked_issues( gadget_id );
+    for ( var i in id_list ) {
+        var id = id_list[i];
+        $.ajax( {
+            url: '/issue/'+ id +'/edit',
+            data: {
+                resolution: resolution
+            },
+            async: false,
+            error: function (xhr, status, error) {
+                console.log('Error: [#'+ id +']' + error);
+            },
+            success: function () {
+            }
+        } );
+    }
+    search_issue( gadget_id );
+}
+
+function get_checked_issues ( id ) {
+    var rtn = new Array;
+    $('#result_form_'+ id +' > div.result > table.issues > tbody > tr > td.check > input[type=checkbox]').each(function(){
+        if ( $(this).attr('checked') ) {
+            rtn.push( $(this).val() );
+        }
+    });
+    return rtn;
+}
+
+function create_issue_header ( e, id ) {
+    var hide_button = '<th align="right"></th>';
+    if ( id == '0' ) {
+        hide_button = '<th align="right"><button type="button" onclick="$(\'#result_form_'+ id +'\').hide(\'blind\', 500);"><img src="/static/images/close.png"></button></th>';
+    }
+    e.html(' \
+        <table class="issues list bround5" cellspacing=0 style="width:100%;" gadget_id="'+ id +'" > \
+            <tr class="table_header"> \
+                <th align="left"> \
+                    <select id="resolution_'+ id +'"> \
+                        <option value="open">'+ resolution_loc('open') +'</option> \
+                        <option value="in-progress">'+ resolution_loc('in-progress') +'</option> \
+                        <option value="verify-fixed">'+ resolution_loc('verify-fixed') +'</option> \
+                        <option value="fixed">'+ resolution_loc('fixed') +'</option> \
+                        <option value="closed">'+ resolution_loc('closed') +'</option> \
+                        <option value="wontfix">'+ resolution_loc('wontfix') +'</option> \
+                        <option value="dup">'+ resolution_loc('dup') +'</option> \
+                    </select> \
+                    <input type="button" value="[% loc('Change Resolution') %]" onclick="change_issue_status( \''+ id +'\', $(\'#resolution_'+ id +'\').val()  );"> \
+                </th> \
+                '+ hide_button + ' \
+            </tr> \
+        </table> \
+        <table class="issues list bround5" cellspacing=0 style="width:100%;" gadget_id="'+ id +'" > \
+            <tr class="table_header"> \
+                <th class="check" width=3%> \
+                    [<span class="clickable" title="[% loc('Check/Uncheck All') %]" onclick="toggle_all_checkbox(\''+ id +'\', this)">+</span>] \
+                </th> \
+                <th class="sortable" onclick="change_sort(\''+ id +'\', this)" name="id" width=5%>[% loc('ID') %]</th> \
+                <th class="sortable" onclick="change_sort(\''+ id +'\', this)" name="project_id" width=14%>[% loc('Project') %]</th> \
+                <th class="sortable" onclick="change_sort(\''+ id +'\', this)" name="severity" width=7%>[% loc('Severity') %]</th> \
+                <th class="sortable" onclick="change_sort(\''+ id +'\', this)" name="title" width=26%>[% loc('Title') %]</th> \
+                <th class="sortable" onclick="change_sort(\''+ id +'\', this)" name="resolution" width=10%>[% loc('Resolution') %]</th> \
+                <th class="sortable" onclick="change_sort(\''+ id +'\', this)" name="issue_type" width=10%>[% loc('Type') %]</th> \
+                <th class="sortable" onclick="change_sort(\''+ id +'\', this)" name="milestone" width=10%>[% loc('Milestone') %]</th> \
+                <th width=15%>[% loc('Assigned To') %] / [% loc('Note') %]</th> \
+                <th width="17" class="pad">&nbsp;</th> \
+            </tr> \
+        </table> \
+    ');
+}
+
+function create_issue_list ( e, id ) {
+    e.html(' \
+        <table class="issues list bround5" cellspacing=0 style="width:100%;" gadget_id="'+ id +'" > \
+        </table> \
+    ');
+}
+
+function load_milestone ( e, milestone_id ) {
+    $.ajax({
+        url: '/api/milestone/fetch',
+        dataType: 'json',
+        data: {
+            id: milestone_id,
+        },
+        error: function (xhr, status, error) {
+//            alert("Error: [milestone/fetch]" + error);
+        },
+        success: function (json) {
+            e.html(json.milestone.name);
+        }
+    });
+}
+
+function append_issue ( e, issue, additional_class ) {
+    var now = new Date().getTime();
+    var project = jQuery.grep( projects, function(p){ return p.id == issue.project_id } )[0];
+    var assigned_to = '&nbsp;';
+    var version = '';
+    var due_on = '';
+    var target = '';
+    var modified = '';
+    if ( issue.assigned_to ) {
+        assigned_to = '<p class="issue note"><img src="/static/images/user16.png" title="[% loc('Assigned To') %]"> <a href="/member/'+ issue.assigned_to +'">' + issue.assigned_to + '</a></p>';
+    }
+    if ( issue.version ) {
+        version = '<p class="issue note"><img src="/static/images/version.png" title="[% loc('Version') %]"/> '+issue.version+'</p>';
+    }
+    if ( issue.due_on ) {
+        due_on = '<p class="issue note"><img src="/static/images/clock16.png" title="[% loc('Due on') %]"> ' + issue.due_on.substr(0, 10) +'</p>';
+        var date_due_on = Date.parse( issue.due_on.substr(0, 10) );
+        if ( issue.resolution != 'verify-fixed' &&  issue.resolution != 'fixed' && issue.resolution != 'closed' && issue.resolution != 'dup' ) {
+            if ( date_due_on < now ) {
+                row_class = 'out';
+            }
+            else if ( date_due_on - now < 86400000 * 3 ) {
+                row_class = 'warning';
+            }
+        }
+    }
+    if ( issue.target ) {
+        target = '<p class="issue note"><img src="/static/images/target.png" title="[% loc('Target') %]">'+ issue.target +'</p>'
+    }
+    if ( issue.modified_on ) {
+        modified = '<p class="issue note"><img src="/static/images/modified.png" title="[% loc('Modified On') %]"> '+ issue.modified_on +'</p>';
+    }
+
+    e.append(
+        '<tr class="issue_row '+ row_class +' '+ additional_class +' '+ issue.resolution +'"> \
+            <td width=3% class="check"><input type="checkbox" name="issue_id" value="'+ issue.id +'"></td> \
+            <td width=5%>#' + issue.id + '</td> \
+            <td width=14%><span class="coloricon bround5" style="background-color:#'+ project.id.substr(0,6) +';"></span> <a href="/project/'+ project.slug +'">' + project.name + '</a></td> \
+            <td width=7%><span class="severity '+ issue.severity +'">' + severity_loc(issue.severity) + '</td> \
+            <td width=26%><a href="/issue/'+ issue.id +'">' + issue.title + '</a></td> \
+            <td width=10%><img src="/static/images/status_'+ issue.resolution +'.png">' + resolution_loc(issue.resolution) + '</td> \
+            <td width=10%>' + issue_type_loc(issue.issue_type) + '</td> \
+            <td width=10% class="milestone" milestone_id="'+ issue.milestone_id +'"><p class="center"><img src="/static/images/loading.gif"></p></td> \
+            <td width=15% onmouseover="show_extranote(this);" onmouseout="hide_extranote(this);">' + assigned_to + '<span class="hidden extra_note">' + modified + target + version + due_on + '</span></td> \
+        </tr>'
+    );
+    if ( row_class == 'flip' ) {
+        row_class = 'flop';
+    }
+    else {
+        row_class = 'flip';
+    }
+} 
+
+function show_extranote ( e ) {
+    $(e).children('span.extra_note').show();
+}
+
+function hide_extranote ( e ) {
+    $(e).children('span.extra_note').hide();
+}
+
+function show_hidden_issues ( id ) {
+    var hidden_issues = $('#result_'+ id +' > table > tbody > tr.hidden');
+    hidden_issues.each( function(i, tr){
+        if ( i < issue_rows_block ) { 
+            $(tr).attr( 'class', $(tr).attr('class').replace('hidden','') );
+        }
+    } );
+    if ( $('#result_'+ id +' > table > tbody > tr.hidden').length < 1 ) {
+        $('#result_'+ id +' > table > tbody > tr.more').remove();
+    }
+    else {
+        var elem = $('#result_'+ id +' > table > tbody > tr.more > td > img');
+        when_visible( elem, function(){ 
+            show_hidden_issues( id );
+        } );
+    }
+}
+
+function append_issue_loader ( e, id ) {
+    e.append('<tr class="more flip"><td width="100%" colspan="9" class="center"><img src="/static/images/clock.gif" id="more_'+ id +'" onload="when_visible( $(this), function(){ show_hidden_issues( \''+ id +'\' ) } );"></td></tr>');
+}
+
+function search_issue ( id, sortcol, sortorder ) {
+    if ( typeof sortcol == 'undefined' ) sortcol = 'severity';
+    if ( typeof sortorder == 'undefined' ) sortorder = 'ASC';
+    var form = document.getElementById( 'form_'+id );
+    $('#result_'+id).show();
+    $('#result_header_'+id).html('');
+    $('#result_form_'+id).show();
+    $('#result_'+id).html('<h3 class="center whitefont"><img src="/static/images/loading.gif"><br>[% loc('Loading') %]</h3>');
+    $.ajax({
+        url: "/api/issue/search",
+        data: $(form).serialize() + '&sortcol='+ sortcol +'&sortorder='+ sortorder,
+        dataType: 'json',
+        error: function(xhr, st, err) {
+            console.log("Error: " + err);
+        },
+        success: function(data) {
+            var container = $("#result_" + id);
+            if ( data.issues.length ) {
+                create_issue_header( $('#result_header_'+id), id );
+                create_issue_list(container, id);
+                $(data.issues).each( function( i, issue ) {
+                    var additional_class = '';
+                    if ( $('#result_'+ id +' table.issues tbody tr.issue_row').length >= issue_rows_block ) {
+                        additional_class = 'hidden';
+                    }
+                    append_issue( $('#result_'+ id +' > table '), issue, additional_class );
+                } );
+                append_issue_loader( $("#result_" + id + ' > table '), id );
+            } 
+            else {
+                $('#result_'+id).html('<h3 class="center whitefont">[% loc('Empty') %]</h3>');
+            }
+            $('div#result_header_'+ id +' > table.issues.list > tbody > tr.table_header > th[name='+ sortcol +']' ).append('<span id="order_'+ id +'"><img src="/static/images/order_'+ sortorder +'.png"></span>');
+            if ( typeof $('#result_'+ id +' > table.issues.list').html() == 'undefined' ) {
+                search_issue( id, sortcol, sortorder );
+            }
+            else {
+                result_count(id, data.issues.length);
+            }
+        }
+    });
+    
+    return false;
+}
+
+function del_query ( id ) {
+    var name = $('#rt_'+id+' > .gadget_title > .gadget_title.string ').text();
+    if ( confirm('Remove saved-query "'+ name +'" ?') ) {
+        $.ajax({
+            url: '/api/query/remove',
+            data: {
+                id: id,
+                account_id: '[% member.email %]',
+            },
+            dataType: 'json',
+            error: function(xhr, st, err) {
+                console.log("Error: " + err);
+            },
+            success: function(data) {
+                location.href = '/mypage';
+            }
+        });
+    }
+}
+
+function fetch_query ( id ) {
+    var query;
+    $.ajax({
+        url: '/api/query/fetch',
+        data: { id: id },
+        dataType: 'json',
+        async: false,
+        error: function(xhr, st, err) {
+            console.log("Error: " + err);
+        },
+        success: function(data) {
+            query = data.query;
+        }
+    });
+    return query;
+}
+
+function form_query ( id ) {
+    return $('#form_'+id).serialize();
+}
+
+function save_query ( input, onSuccess ) {
+    if ( typeof( onSuccess ) == 'undefined' ) {
+        onSuccess = function(data){};
+    }
+    $.ajax({
+        url: '/api/query/save',
+        data: input,
+        dataType: 'json',
+        error: function(xhr, st, err) {
+            console.log("Error: " + err);
+        },
+        success: onSuccess
+    });
+}
+
+function seq_up ( id ) {
+    var upper_id;
+    var current_id;
+    var done = 0;
+    var upper;
+    var target;
+    $('div.gadget.search').each( function() {
+        if ( ! done ) {
+            current_id = $(this).attr('id').match('^rt_(.+)$')[1];
+            if ( current_id == id ) {
+                done = 1;
+            }
+            else if ( current_id ) {
+                upper_id = current_id;
+            }
+        }
+    } );
+    if ( upper_id > 0 ) {
+        upper = fetch_query( upper_id );
+        target = fetch_query( id );
+
+        save_query( form_query( target.id ) + '&name='+ target.name +'&sequence='+ upper.sequence );
+        save_query( form_query( upper.id ) + '&name='+ upper.name +'&sequence='+ target.sequence );
+
+        $('#rt_'+id).after( $('#rt_'+upper_id).remove() );
+    }
+}
+
+function seq_down ( id ) {
+    var downer_id;
+    var current_id;
+    var done = 0;
+    var downer;
+    var target;
+    $('div.gadget.search').each( function() {
+        current_id = $(this).attr('id').match('^rt_(.+)$')[1];
+        if ( ! done && current_id == id ) {
+            done = 1;
+        }
+        else if ( done && current_id ) {
+            if ( typeof( downer_id ) == 'undefined' ) {
+                downer_id = current_id;
+            }
+        }
+    } );
+    if ( downer_id ) {
+        downer = fetch_query( downer_id );
+        target = fetch_query( id );
+
+        save_query( form_query( target.id ) + '&name='+ target.name +'&sequence='+ downer.sequence );
+        save_query( form_query( downer.id ) + '&name='+ downer.name +'&sequence='+ target.sequence );
+
+        $('#rt_'+id).before( $('#rt_'+downer_id).remove() );
+    }
+}
+
+function result_count( id, count ) {
+    $('#count_'+id).remove();
+    $('#result_header_'+id+' > table > tbody > tr.table_header > th[align=right]').prepend('<span id="count_'+id+'" class="bround5" ></span>');
+    $('#count_'+id).text( count );
+    $('#count_'+id).css({
+        "background-color": '#693',
+        "color": '#ffe',
+        "font-weight": '700',
+        "padding": '3px',
+        "margin-right": '10px',
+        "text-shadow": '1px 1px 1px #333',
+        "box-shadow": '1px 1px 1px #000'
+    });
+}
+
+function when_visible ( e, code ) {
+    var date = new Date;
+    var key = 'timer_' + Math.random() + '_' + date.getTime();
+    timers[key] = setInterval(function(){
+        var top_offset = e.scrollTop();
+        var window_height = $(window).height();
+        if ( top_offset < window_height && e.css('display') != 'none' ) {
+            clearTimeout( timers[key] );
+            code( e );
+        }
+    },1000);
+}
+
+function severity_loc ( severity ) {
+    var res;
+    switch ( severity ) {
+        case 'critical':
+            res = '[% loc('critical') %]';
+            break;
+        case 'major':
+            res = '[% loc('major') %]';
+            break;
+        case 'minor':
+            res = '[% loc('minor') %]';
+            break;
+        case 'nitpick':
+            res = '[% loc('nitpick') %]';
+            break;
+        case 'wishlist':
+            res = '[% loc('wishlist') %]';
+            break;
+    }
+    return res;
+}
+
+function resolution_loc ( resolution ) {
+    var res;
+    switch ( resolution ) {
+        case 'open':
+            res = '[% loc('open') %]';
+            break;
+        case 'in-progress':
+            res = '[% loc('in-progress') %]';
+            break;
+        case 'verify-fixed':
+            res = '[% loc('verify-fixed') %]';
+            break;
+        case 'fixed':
+            res = '[% loc('fixed') %]';
+            break;
+        case 'closed':
+            res = '[% loc('closed') %]';
+            break;
+        case 'wontfix':
+            res = '[% loc('wontfix') %]';
+            break;
+        case 'dup':
+            res = '[% loc('dup') %]';
+            break;
+    }
+    return res;
+}
+
+function issue_type_loc ( type ) {
+    var res;
+    switch ( type ) {
+        case 'bug':
+            res = '[% loc('bug') %]';
+            break;
+        case 'feature':
+            res = '[% loc('feature') %]';
+            break;
+        case 'improvement':
+            res = '[% loc('improvement') %]';
+            break;
+        case 'wishlist':
+            res = '[% loc('wishlist') %]';
+            break;
+    }
+    return res;
+}
+
+function toggle_gadget_display ( e, id ) {
+    var r_form = $('form#result_form_' + id);
+    var r_head = $('form#result_form_' + id + ' > div#result_header_' + id);
+    var r_body = $('form#result_form_' + id + ' > div#result_' + id);
+    if ( r_form.attr('hide') == 1 ) {
+        $(e).attr('src','/static/images/eye_open.png');
+        r_form.attr('hide',0);
+        r_head.show('blind');
+        r_body.show('blind');
+    }
+    else {
+        $(e).attr('src','/static/images/eye_close.png');
+        r_form.attr('hide',1);
+        r_head.hide('blind');
+        r_body.hide('blind');
+    }
+}
+
+function gadget_init () {
+    $.ajax({
+        url: '/api/project/list',
+        dataType: 'json',
+        async: false,
+        error: function (xhr, status, error) {
+            console.log("Error: [project/list]" + error);
+        },
+        success: function(json) {
+            projects = json.projects;
+        }
+    });
+
+    $("#form_0.search_gadget").each( function(i, form) {
+        var id = $(form).parent().attr('id');
+        $("input[class='save']", form).click( function() {
+            var name = window.prompt("[% loc('Please enter the query name.') %]", "Saved Query");
+            var query_data = $(form).serialize();
+            if ( name ) {
+                query_data += '&name=' + name;
+                save_query( query_data, function() {
+                    location.href = '/mypage';
+                } );
+            }
+        } );
+    } );
+
+    $("form.search_gadget.saved > div > input.save").each( function() {
+        $(this).click( function() {
+            var id = $(this).parent().attr('id').match('^search_(.+)$')[1];
+            var query_data = $("#form_"+id).serialize();
+            var name = $("#rt_"+id+" > .gadget_title > .gadget_title.string").text();
+            name = window.prompt("[% loc('Please enter the query name.') %]", name);
+            if ( name ) {
+                query_data += '&name=' + name;
+                save_query( query_data, function() {
+                    location.href = '/mypage';
+                } );
+            }
+        } );
+    } ); 
+
+    $("form.search_gadget.saved").each( function(i, form) {
+        search_issue( $(form).attr('id').match('^form_(.+)$')[1] );
+    } );
+
+    milestone_loader = setInterval( function(){
+        var load_target = $('div.result table.issues tbody tr.issue_row td.milestone');
+        var loaded_elms = $('div.result table.issues tbody tr.issue_row td.milestone.loaded');
+        load_target.each( function(i, td) {
+            if ( typeof $(td).attr('loaded') == 'undefined' ) {
+                load_milestone( $(td), $(td).attr('milestone_id') );
+                $(td).attr('loaded', 1);
+            }
+            if ( load_target.length == loaded_elms.length ) {
+                clearInterval(milestone_loader);
+            }
+        } );
+    }, 2000);
+}
+
+$(document).ready( function() {
+    gadget_init();
+});
+
+-->
+</script>

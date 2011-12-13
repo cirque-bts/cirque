@@ -1,0 +1,7 @@
+[% INCLUDE 'header.tx' %]
+[% action.author %] removed sub-issue relation for '[% subissue.title %]'.
+
+Sub-Issue URL: [% domain.web %]/issue/[% issue.id %]
+
+[% INCLUDE 'sign.tx' %]
+

@@ -1,0 +1,9 @@
+[% INCLUDE 'header.tx' %]
+[% action.author %] posted following comment.
+
+[% comment.body %]
+
+Issue URL: [% domain.web %]/issue/[% issue.id %]
+
+[% INCLUDE 'sign.tx' %]
+

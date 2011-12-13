@@ -1,0 +1,117 @@
+[% WRAPPER "wrapper.tx" %]
+
+<style type="text/css">
+<!--
+    #essentials, #branches{
+        border: 1px solid #ccc;
+        padding: 0em 1em 1em 1em;
+        margin: 1em;
+    }
+    .editview {
+        display: none;
+    }
+    .branches {
+        list-style: none;
+        padding: 0px;
+    }
+    .branches li {
+        float: left;
+        border: 1px solid #cccccc;
+        box-shadow: -1px -1px 3px #666666;
+        background-color: #ffffff;
+        width: 280px;
+        height: 100px;
+        margin: 12px;
+        padding: 5px;
+    }
+    .sidebyside dd {
+        width: 400px;
+    }
+    .master h2 {
+        color: #693;
+    }
+    .term {
+        clear: both;
+    }
+    #repo_exists img {
+        height: 16px;
+    }
+-->
+</style>
+
+<script type="text/javascript">
+<!--
+    $(document).ready( function() {
+        $("#editdetails").submit( function() {
+            return confirm("[% loc('OK to submit changes?') %]");
+        } );
+
+        $('.editable').each( function( i, item ) {
+            $(item).click( function(ev) {
+                var editor = $(ev.target).next();
+                $(editor).show();
+                $(item).hide();
+                $("#commitbutton").show();
+            } );
+            $(item).attr("title", "[% loc('click to edit') %]");
+        } );
+
+        $('#repo_url').change( function () {
+            var resdom = '#repo_exists';
+            var git_url = this.value;
+            $(resdom).html('<img class="repo_result" src="/static/images/loading.gif">');
+            $('#commitbutton').attr('disabled', true);
+            if ( git_url ) {
+                $(resdom).html('<img class="repo_result" src="/static/images/notification_done.png" value=0>');
+    
+                var matched;
+                var link_pattern;
+                if ( matched = git_url.match( 'github\.com[:/]([^/]+/.+)\.git$' ) ) {
+                    link_pattern = "https://github.com/"+ matched[1] +"/commit/%commit"
+                }
+                else { 
+                    link_pattern = "";
+                }
+                $('input#link_pattern').val( link_pattern );
+                $('#commitbutton').attr('disabled', false);
+            }
+            else {
+                $(resdom).html('<img class="repo_result" src="/static/images/notification_error.png" value=1>');
+            }
+        } );
+
+    } );
+-->
+</script>
+
+<h2>[% repo.name %] - [% project.name %][% loc("'s Repository") %]</h2>
+
+<div id="essentials" class="bround5">
+    <form id="editdetails" action="/admin/project/[% project.slug %]/repository/[% repo.id %]/edit" method="POST">
+        <div class="over-border" style="width: 140px; top: -1em">
+            <span class="title">[% loc('Essentials') %]</span>
+        </div>
+        <dl class="sidebyside">
+            <dt>[% loc('Name') %]</dt>
+            <dd>[% repo.name OR '(unnamed repository)' %]</dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>URL</dt>
+            <dd>
+                <input id="repo_url" type="text" name="url" value="[% repo.url %]" style="width: 80%;" /><span id="repo_exists"></span>
+            </dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc('Link Pattern') %]</dt>
+            <dd>
+                <input id="link_pattern" type="text" name="link_pattern" value="[% repo.link_pattern %]" style="width: 80%;" /><br />
+                <span style="font-size: 0.8em;color:#f00;">* <code>%commit</code> は コミットを表すSHA1に置換されます</span>
+            </dd>
+        </dl>
+        <p class="term">
+            <input class="term" id="commitbutton" type="submit" value="[% loc('Commit Changes') %]" />
+        </p>
+    </form>
+</div>
+
+[% END %]

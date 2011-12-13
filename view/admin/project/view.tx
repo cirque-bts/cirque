@@ -1,0 +1,304 @@
+[% WRAPPER "wrapper.tx" %]
+
+<script type="text/javascript">
+<!--
+
+$(document).ready(function(){
+    $('a.project_member').each(function(i, member){
+        $(member).before('<img class="avatar" id="avatar_'+ i +'">');
+        show_avatar('#avatar_'+i, $(member).text());
+    });
+    $("#dialog").dialog({
+        title: '[% loc('Add New Repository') %]',
+        autoOpen: false,
+        width: 640,
+        height: 240,
+        modal: true,
+        buttons: {
+            'Close': function(){
+                $(this).dialog( "close" );
+            },
+            'Apply': function(){
+                if ( $('#repo_exists > img').attr('value') == 1 ) {
+                    alert('[% loc('Specified URL is not git repository') %]');
+                }
+                else { 
+                    $('#add_repo').submit();
+                }
+            }
+        },
+    });
+
+    $('#repo_url').change( function () {
+        var resdom = '#repo_exists';
+        var git_url = this.value;
+        $(resdom).html('<img class="repo_result" src="/static/images/loading.gif">');
+        $.ajax( {
+            dataType: 'json',
+            method: 'POST',
+            url: '/git/check_repo',
+            data: {
+                name: 'tmp',
+                url: git_url,
+            },
+            success: function ( json ) {
+                if ( json.error ) {
+                    $(resdom).html('<img class="repo_result" src="/static/images/notification_error.png" value=1>');
+                }
+                else {
+                    $(resdom).html('<img class="repo_result" src="/static/images/notification_done.png" value=0>');
+
+                    var matched;
+                    var link_pattern;
+                    if ( matched = git_url.match( 'github\.com[:/]([^/]+/.+)\.git$' ) ) {
+                        link_pattern = "https://github.com/"+ matched[1] +"/commit/%commit"
+                    }
+                    else { 
+                        link_pattern = "";
+                    }
+                    $('input#link_pattern').val( link_pattern );
+                }
+            }
+        } )
+    } );
+});
+
+function delete_check ( addr ) {
+    if ( confirm( '[% loc('Really want to remove ?') %] ['+ addr +']') ) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+function add_check ( addr ) {
+    if ( addr ) {
+        return true;
+    }
+    else {
+        alert( '[% loc('Please input mail-address') %]' );
+        return false;
+    }
+}
+
+-->
+</script>
+
+<style type="text/css">
+<!--
+    .members {
+        list-style: none;
+    }
+    .members li.member form {
+        margin: 0px;
+    }
+
+    .sidebyside dd {
+        width: 400px;
+    }
+
+    #essentials, #project_members, #repository, #issues, #milestones{
+        border: 1px solid #ccc;
+        padding: 0.4em 1em 1.2em 1em;
+        margin: 1em;
+    }
+    .critical { 
+        font-weight: bold;
+        color: #f00;
+    }
+    .issue-summary {
+        margin-left: 30px;
+        padding: 5px;
+        border: 1px solid #cccccc;
+    }
+    .issue-summary tr th,
+    .issue-summary tr td,
+    .issue-summary tr td a,
+    .issue-summary tr td span {
+        font-size: 1.4em;
+        padding: 4px;
+        text-align: center;
+        font-weight: 700;
+        text-decoration: none;
+    }
+    #repo_exists img {
+        width: 16px;
+    }
+-->
+</style>
+
+<h2><a href="/admin/project">[% loc('Project Admin') %]</a> &gt;&gt; [% project.name %]</h2>
+<div id="essentials" class="bround5" style="margin-bottom: 2em">
+<div class="over-border" style="width: 180px; top: -1em">
+    <span class="title">[% loc("Essentials") %]</span>
+    <span class="actions">
+        [<a href="/admin/project/[% project.slug %]/edit">[% loc("Edit") %]</a>]
+    </span>
+</div>
+
+<dl class="sidebyside">
+    <dt>[% loc("Name") %]</dt>
+    <dd><a href="/project/[% project.slug %]">[% project.name %]</a> - [<a href="/project/[% project.slug %]/issue/report">[% loc("New issue") %]</a>]</span></dd>
+</dl>
+<dl class="sidebyside">
+    <dt>[% loc("Slug") %]</dt>
+    <dd>[% project.slug %]</dd>
+</dl>
+<dl class="sidebyside" style="margin-bottom: 1em">
+    <dt>[% loc("Description") %]</dt>
+    <dd>[% project.description %]</dd>
+</dl>
+</div>
+
+<div id="project_members" class="bround5">
+    <div class="over-border" style="width: 240px; top: -1em">
+        <span class="title">[% loc("Project Members") %]</span>
+    </div>
+    <ul class="members">
+    [% FOREACH proj_member IN project.members %]
+      <li class="member">
+          <form action="/admin/project/[% project.slug %]/member/delete" method="POST" onsubmit="return delete_check('[% proj_member %]');">
+              <a class="project_member" href="/member/[% proj_member %]">[% proj_member %]</a>
+              <input type="hidden" name="author" value="[% member.author %]">
+              <input type="hidden" name="account_id" value="[% proj_member %]">
+              <input type="submit" value="[% loc('Delete') %]">
+          </form>
+      </li>
+    [% END %]
+    </ul>
+    <p>
+        <form action="/admin/project/[% project.slug %]/member/add" method="POST" onsubmit="return add_check( $(this).children('#additional_member').val() );">
+            [% loc("Additional Member") %]: <input type="text" name="account_id" id="additional_member"> 
+            <input type="hidden" name="author" value="[% member.author %]"> 
+            <input type="submit" value="[% loc('Add') %]"/>
+        </form>
+    </p>
+</div>
+
+<div id="repository" class="bround5">
+<div class="over-border" style="width: 180px; top: -1em">
+    <span class="title">[% loc("Repository") %]</span>
+</div>
+
+<ul>
+  [% FOREACH repo IN repos %]
+  <li><b>[% repo.name OR '(unnamed repository)' %]</b> - [<a href="/admin/project/[% project.slug %]/repository/[% repo.id %]">[% loc('view / edit') %]</a>]</li>
+  <ul>
+    <li>[% repo.url OR '(url not defined)' %]</li>
+    <ul>
+      [% FOREACH branch IN repo.branches %]
+      [% IF branch.name == 'master' %]
+      <li class="master">[% branch.name %] ([% branch.sha1 %])</li>
+      [% END %]
+      [% END %]
+      [% FOREACH branch IN repo.branches %]
+      [% IF branch.name != 'master' %]
+      <li>[% branch.name %] ([% branch.sha1 %])</li>
+      [% END %]
+      [% END %]
+    </ul>
+  </ul>
+  [% END %]
+</ul>
+
+<p>
+    <button onclick="$('#dialog').dialog('open');">[% loc('Add') %]</button>
+</p>
+
+</div>
+
+<div id="issues" class="bround5">
+    <div class="over-border" style="width: 230px; top: -1em">
+        <span class="title">[% loc("Issues") %]</span>
+    </div>
+    
+    <table class="issue-summary bround5">
+    <tr>
+        <td rowspan="3" valign="middle">
+            <h2 style="font-weight:900;">[% loc("Open Issues") %]</h2>
+            <span style="font-weight:900;font-size:2em;">[% issue_summary.total_open || 0 %]</span>
+        </td>
+        <td colspan="5" align="middle">[% loc("Severity") %]</td>
+    </tr>
+    <tr>
+        <th>[% loc('critical') %]</th>
+        <th>[% loc('major') %]</th>
+        <th>[% loc('minor') %]</th>
+        <th>[% loc('nitpick') %]</th>
+        <th>[% loc('wishlist') %]</th>
+    </tr>
+    <tr>
+        <td><a href="/project/[% project.slug %]?resolution=open&severity=critical"[% IF (issue_summary.total_critical > 0) %] class="critical"[% END %]>[% issue_summary.total_critical || 0 %]</a></td>
+        <td><a href="/project/[% project.slug %]?resolution=open&severity=major">[% issue_summary.total_major || 0 %]</a></td>
+        <td><a href="/project/[% project.slug %]?resolution=open&severity=minor">[% issue_summary.total_minor || 0 %]</a></td>
+        <td><a href="/project/[% project.slug %]?resolution=open&severity=nitpick">[% issue_summary.total_nitpick || 0 %]</a></td>
+        <td><a href="/project/[% project.slug %]?resolution=open&severity=wishlist">[% issue_summary.total_wishlist || 0 %]</a></td>
+    </table>
+    
+</div>
+
+<div id="milestones" class="bround5">
+<div class="over-border" style="width: 260px; top: -1em">
+    <span class="title">[% loc("Milestones") %]</span>
+    <ul class="actions">
+      [<a href="/admin/project/[% project.slug %]/create/milestone">[% loc("New milestone") %]</a>]
+    </ul>
+</div>
+
+[% IF milestones.size() > 1 %]
+<table cellspacing="0" class="milestone-summary list">
+    <tr class="table_header">
+        <th>[% loc("Milestone #") %]</th>
+        <th>[% loc("Name") %]</th>
+        <th>[% loc("Due on") %]</th>
+    </tr>
+    [% class = 'flip' %]
+    [% FOREACH milestone IN milestones %]
+    [%     IF milestone.name != 'Not defined' %]
+    <tr class="[% class %]">
+        <td>#[% milestone.id %]</td>
+        <td><a href="/admin/project/[% project.slug %]/edit/milestone/[% milestone.id %]">[% milestone.name %]</a></td>
+        <td>[% milestone.due_on OR loc("undefined") %]</td>
+    </tr>
+    [%         IF class == 'flip' %]
+    [%             class = 'flop' %]
+    [%         ELSE %]
+    [%             class = 'flip' %]
+    [%         END %]
+    [%     END %]
+    [% END %]
+</table>
+[% END %]
+</div>
+
+<div class="center">
+    <div class="large_button bround5">
+        <a style="color:#ff3300;" class="clickable" onclick="if(confirm('[% loc('Really want to delete this project?') %]')){location.href='/admin/project/[% project.slug %]/drop';}">[% loc('Delete This Project') %]</a>
+    </div>
+</div>
+
+<div id="dialog">
+    <form id="add_repo" action="/admin/project/[% project.slug %]/add_repo" method="POST">
+        <dl class="sidebyside">
+            <dt>[% loc('Name') %]</dt>
+            <dd><input type="text" name="name" style="width:200px;"/></dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc('URL') %]</dt>
+            <dd>
+                <input id="repo_url" type="text" name="url" style="width:240px;"/>
+                <span id="repo_exists"><img src="/static/images/notification_error.png" value=1></span>
+            </dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc('Link Pattern') %]</dt>
+            <dd>
+                <input id="link_pattern" type="text" name="link_pattern" style="width:240px;"/><br>
+                <span style="font-size: 0.8em;color:#f00;">* <code>%commit</code> は コミットを表すSHA1に置換されます</span>
+            </dd>
+        </dl>
+    </form>
+</div>
+
+[% END %]

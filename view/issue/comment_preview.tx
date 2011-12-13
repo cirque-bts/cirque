@@ -1,0 +1,25 @@
+<style type="text/css">
+<!--
+    .editview { display: none }
+    .undefined {
+        color: #ccc;
+        font-style: italic;
+    }
+-->
+</style>
+
+<div id="description" class="bround5">
+    <h3>[% loc("Description") %]</h3>
+    <div style="margin:5px; padding:5px;">[% issue.description | markdown %]</div>
+</div>
+
+<div id="comments" class="bround5">
+    <h3>[% loc("Comments") %]</h3>
+    [% FOREACH comment IN comments %]
+    <div class="description">
+        <p><span class="author">[% comment.author || 'unknown' %]</span> added a comment - [% comment.created_on %]</p>
+        <p>[% comment.body | markdown %]</p>
+    </div>
+    [% END %]
+</div>
+

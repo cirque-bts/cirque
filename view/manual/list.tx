@@ -1,0 +1,8 @@
+[% WRAPPER 'include/wrapper.tx' %]
+<h2>[% loc('Manual') %]</h2>
+<ul>
+[% FOREACH file IN files %]
+  <li><a href="/man/[% file %]">[% file %]</a></li>
+[% END %]
+</ul>
+[% END %]

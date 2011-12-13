@@ -1,0 +1,630 @@
+[% WRAPPER "wrapper.tx" %]
+
+[% MACRO fmt_subissue_link(subissue) BLOCK -%]
+   <a href="/issue/[% subissue.id %]" title="[% subissue.title %]([% loc(subissue.severity) %]:[% loc(subissue.resolution) %])" class="issue-[% subissue.resolution %] [% IF subissue.resolution == 'open' %]prio-[% subissue.severity %][% END %]">#[% subissue.id %]</a>
+[%- END %]
+
+[% MACRO fmt_issue_val(value) BLOCK %]
+[% IF (value) %][% loc(value) %][% ELSE %]<span class="undefined">([% loc("undefined") %])</span>[% END %]
+[% END %]
+
+<script type="text/javascript">
+<!--
+    $(document).ready( function() {
+        $('.editable').each( function( i, item ) {
+
+            $(item).click( function(ev) {
+                var ctxt = $(ev.target);
+                while (! ctxt.hasClass("editable")) {
+                    ctxt = ctxt.parent();
+                    if (ctxt == null) {
+                        throw new Error("PANIC: Could not find editable element");
+                    }
+                }
+                var editor = ctxt.next();
+                $(editor).show();
+                $(item).hide();
+            } );
+            $(item).attr("title", "[% loc('click to edit') %]");
+        } );
+        $("#make_rel").click(function(){ 
+            $("#dialog").dialog( "open" );
+            $.get("/issue/list", function( doc ){
+                $("#dialog").html( doc ) } 
+            );
+        });
+        $("#dialog").dialog({
+            autoOpen: false,
+            width: 840,
+            height: 320,
+            modal: true,
+            buttons: {
+                'Cancel': function(){
+                    $(this).dialog( "close" );
+                },
+                'Apply': function(){
+                    if ( parseInt( $('#selected').text() ) > 0  ) {
+                        location.href = '/issue/[% issue.id %]/relation/' + $('#selected').text();
+                    }
+                }
+            },
+        });
+        $("#preview_dialog").dialog({
+            autoOpen: false,
+            width: 700,
+            height: 400,
+            modal: true,
+            resizable: false,
+            buttons: {
+                'Close': function(){
+                    $("#preview_dialog").html('');
+                    $(this).dialog( "close" );
+                }
+            },
+        });
+        $("#edit_dialog").dialog({
+            autoOpen: false,
+            width: 700,
+            height: 480,
+            modal: true,
+            resizable: false,
+            buttons: {
+                '[% loc('Close') %]': function(){
+                    $(this).dialog( "close" );
+                },
+                '[% loc('Submit') %]': function(){
+                    $('#editdetails').submit();
+                }
+            },
+        });
+        $("#due_on").datepicker({ dateFormat: 'yy-mm-dd 00:00:00' });
+        $("#preview_button").click(function(){
+            $("#preview_dialog").dialog( "open" );
+            $.post( '/issue/[% issue.id %]/comment_preview', { body: $("#comment_body").val() }, function( html ){
+                $("#preview_dialog").html( html );
+            });
+        });
+        $("#description_preview").click(function(){
+            $("#preview_dialog").dialog( "open" );
+            $.post( '/project/[% project.slug %]/issue/preview', 
+                {
+                    title: '[% issue.title %]',
+                    assigned_to: '[% issue.assigned_to %]',
+                    issue_type: '[% issue.issue_type %]',
+                    milestone_id: '[% issue.milestone_id %]',
+                    target: '[% issue.target %]',
+                    version: '[% issue.version %]',
+                    resolution: '[% issue.resolution %]',
+                    severity: '[% issue.severity %]',
+                    reported_by: '[% issue.reported_by %]',
+                    subissues: '[% issue.subissues %]',
+                    due_on: '[% issue.due_on %]',
+                    cc: '[% issue.cc %]',
+                    description: $("#description_body").val(),
+                }, 
+                function( html ){
+                    $("#preview_dialog").html( html );
+                }
+            );
+        });
+
+        if ( $('div#comments > div.description').size() > 0 ) {
+            $('#comment_tab').append('<span id="comment_count" class="bround5"></span>');
+            $('#comment_count').attr('title', $($('div#comments > div.description').get(0)).children('p.comment_header').text() );
+            $('#comment_count').css({
+                "font-size": '0.6em',
+            });
+            $('#comment_count').text( $('div#comments > div.description').size() + '件' );
+        }
+        $('span.author').each(function(i,author){
+            $(author).before('<img class="avatar" id="avatar_'+ i +'">');
+            show_avatar('#avatar_'+i, $(author).text());
+        });
+
+        $('span > pre > code').each(function(j, e){
+            var data = $(e).html();
+            var p = $(e).parent('pre');
+            var snip = $('<div class="snippet bround5 border"><pre><code>'+ data +'</pre></code></div>');
+            p.before(snip);
+            p.remove();
+        });
+        snippet_resize();
+        $(window).resize(function(){ snippet_resize() });
+
+        $('div#comments > div.description').each( function(){
+            var block = $(this);
+            var comment_header = block.children( 'p.comment_header' );
+            if ( comment_header.children( 'span.author' ).text() == '[% member.author %]' ) {
+                comment_header.html( 
+                    comment_header.html() + '<span class="border bround5 button" onclick="edit_comment( \''+ block.attr('comment_id') +'\')">[% loc('Edit') %]</span>'
+                );
+            }
+            var button = comment_header.children( 'span.button' );
+        } );
+    } );
+
+    function snippet_resize () {
+        var w = parseInt( $('td#main').width() ) * 0.9;
+        $('div.snippet').css('max-width', w + 'px');
+    }
+
+    function edit_comment ( comment_id ) {
+        var target = $('div.description[comment_id='+comment_id+']');
+        target.children( 'span.comment_body' ).hide();
+        target.children( 'form.comment_edit' ).show();
+    }
+
+    function dismiss_edit_comment ( comment_id ) {
+        var target = $('div.description[comment_id='+comment_id+']');
+        target.children( 'form.comment_edit' ).hide();
+        target.children( 'span.comment_body' ).show();
+    }
+
+    function select_subissue(){
+        var obj = document.getElementById('issue_id');
+        var i = obj.selectedIndex;
+        if ( i != 0 ) {
+            $.get( '/issue/info/'+ obj.options[i].value, function( doc ) {
+                $('#preview').html(doc);
+            } );
+        }
+        else {
+            $('#preview').html('');
+        }
+    }
+    function delete_duplicate_subissue () {
+        $("#issue_id > option").each(function(){
+            if ( $(this).val() == [% issue.id %] ) {
+                $(this).remove();
+            }
+        });
+    }
+    function subinfo_show( id ) {
+        $('#subinfo > div').hide();
+        $('#subinfo > div#'+id).show();
+    }
+
+    function code_resize ( width ) {
+        $('.syntaxhighlighter').css('max-width', width);
+    }
+
+-->
+</script>
+
+<style type="text/css">
+<!--
+    .editable { cursor: pointer; }
+    .editview { display: none }
+    .undefined {
+        color: #ccc;
+        font-style: italic;
+    }
+    #issues ul  {
+        padding-bottom: 1.0em;
+    }
+    #details dt,
+    #details dd {
+        font-size: 0.8em;
+        max-width: 300px;
+    }
+    #details dd {
+        width: auto;
+    }
+    #details input {
+        width: auto;
+    }
+    #details form div {
+        width: 420px;
+        float: left;
+    }
+    #suggest ul li {
+        font-size: 0.8em;
+        padding: 1px;
+    }
+    div.left, div.right {
+        width: auto;
+        min-width: 200px;
+        float: left;
+    }
+    .sidebyside dt {
+        min-width: 80px;
+        width: 20%;
+    }
+    .sidebyside dd {
+        min-width: 120px;
+        width: 80%;
+    }
+    td.edit {
+        font-size: 0.8em;
+        vertical-align: top;
+    }
+    a.issue-in-progress {
+        color: #0d0;
+    }
+    a.issue-verify-fixed {
+        color: #09e;
+    }
+    a.issue-closed, a.issue-fixed, a.issue-wontfix {
+        text-decoration: line-through;
+        color: #ddd;
+    }
+    a.prio-critical {
+        color: #f00;
+    }
+    .syntaxhighlighter {
+        max-width: 1400px;
+        overflow: hidden;
+    }
+    .comment_edit textarea {
+        width: 100%;
+        height: 120px;
+    }
+    textarea#comment_body {
+        width: 90%;
+        height: 120px;
+    }
+    div#edit_dialog form#editdetails table tbody tr td.edit dl.sidebyside {
+        min-width: 300px;
+    }
+    div#edit_dialog form#editdetails table tbody tr td.edit dl.sidebyside dt {
+        font-size: 0.8em;
+        font-weight: 900;
+        width: 20%;
+        min-width: 80px;
+    }
+    div#edit_dialog form#editdetails table tbody tr td.edit dl.sidebyside dd {
+        font-size: 0.8em;
+        width: 70%;
+        min-width: 130px;
+    }
+    div#edit_dialog form#editdetails table tbody tr td.edit dl.sidebyside dd input[type="text"]{
+        min-width: 120px;
+    }
+    .snippet {
+        max-width: 700px;
+        overflow: auto;
+        margin-bottom: 1em;
+        margin-left: 30px;
+        padding: 5px;
+    }
+    span#disp_description,
+    span.comment_body {
+        font-size: 0.8em;
+    }
+-->
+</style>
+
+
+<div id="dialog" title="[% loc('Make Relation') %]">
+</div>
+
+<div id="preview_dialog" title="Preview">
+</div>
+
+<div id="edit_dialog" title="[% loc('Edit Issue') %]">
+    <form id="editdetails" action="/issue/[% issue.id %]/edit" method="POST">
+        <table width="100%">
+            <tr>
+                <td class="edit">
+                    <dl class="sidebyside">
+                        <dt>[% loc("Title") %]</dt> 
+                        <dd style="width:auto;">
+                            <input type="text" name="title" value="[% issue.title %]" style="width:100%;">
+                        </dd>
+                    </dl>
+                    <dl class="sidebyside">
+                        <dt>[% loc("Project") %]</dt>
+                        <dd><a href="/project/[% project.slug %]">[% project.name %]</a></dd>
+                    </dl>
+                    <dl class="sidebyside">
+                        <dt>[% loc("Issue Type") %]</dt>
+                        <dd>
+                            <select name="issue_type">
+                            [% FOREACH type IN [ 'bug', 'feature', 'improvement', 'wishlist' ] %]
+                            <option value="[% type %]"[% IF (issue.issue_type == type) %] selected="selected" [% END %]>[% loc(type) %]</option>
+                            [% END %]
+                            </select>
+                        </dd>
+                    </dl>
+                    <dl class="sidebyside">
+                        <dt>[% loc("Milestone") %]</dt>
+                        <dd>
+                            <select name="milestone_id">
+                            [% FOREACH m IN milestones %]
+                            <option value="[% m.id %]"[% IF (issue.milestone_id == m.id) %] selected="selected"[% END %]>#[% m.id %] - [% m.name %]</option>
+                            [% END %]
+                            </select>
+                        </dd>
+                    </dl>
+                    <dl class="sidebyside">
+                        <dt>[% loc("Assigned To") %]</dt>
+                        <dd>
+                            <input type="text" id="assigned_to" name="assigned_to" value="[% issue.assigned_to %]" size="20" />
+                        </dd>
+                    </dl>
+                    <dl class="sidebyside">
+                        <dt>[% loc("Target") %]</dt>
+                        <dd>
+                            <input type="text" size="20" name="target" value="[% issue.target %]"/>
+                        </dd>
+                    </dl>
+                    <dl class="sidebyside">
+                        <dt>[% loc("Version") %]</dt>
+                        <dd>
+                            <input type="text" name="version" value="[% issue.version %]" size="20" />
+                        </dd>
+                    </dl>
+                    <dl class="sidebyside">
+                        <dt>[% loc("Cc") %]</dt>
+                        <dd>
+                            <input type="text" name="cc" value="[% issue.cc %]" size="20" />
+                        </dd>
+                    </dl>
+                </td>
+            
+                <td class="edit">
+                    <dl class="sidebyside">
+                        <dt>[% loc("Severity") %]</dt>
+                        <dd>
+                            <select name="severity">
+                            [% FOREACH severity IN [ 'critical', 'major','minor', 'nitpick', 'wishlist' ] %]
+                            <option value="[% severity %]"[% IF (issue.severity == severity) %] selected="selected"[% END %]>[% loc(severity) %]</option>
+                            [% END %]
+                            </select>
+                        </dd>
+                    </dl>
+                    <dl class="sidebyside">
+                        <dt>[% loc("Resolution") %]</dt>
+                        <dd>
+                            <select name="resolution">
+                                [% FOREACH mode IN [ 'open', 'in-progress', 'verify-fixed', 'fixed', 'closed', 'wontfix', 'dup' ] %]
+                                <option value="[% mode %]"[% IF (mode == issue.resolution) %] selected="selected" [% END %]>[% loc(mode) %]</option>
+                                [% END %]
+                            </select>
+                        </dd>
+                    </dl>
+                    <dl class="sidebyside">
+                        <dt>[% loc("Reported By") %]</dt>
+                        <dd>[% issue.author || 'unknown' %]</dd>
+                    </dl>
+                    <dl class="sidebyside">
+                        <dt>[% loc("Sub-Issues") %]</dt>
+                        <dd>
+                                <input type="text" id="subissue" name="subissue" value="[% FOREACH sub_issue IN issue.children %][% sub_issue.id %][% UNLESS loop.last %],[% END %][% END %]">
+                        </dd>
+                    </dl>
+                    <dl class="sidebyside">
+                        <dt>[% loc("Due on") %]</dt>
+                        <dd>
+                            <span id="due_on_input">
+                                <input type="text" id="due_on" name="due_on" value="[% issue.due_on %]" >
+                                <input type="button" onclick="$('#due_on').val('')" value="[% loc('Clear')%]" style="width:auto;">
+                            </span>
+                        </dd>
+                    </dl>
+                    <dl class="sidebyside">
+                        <dt>[% loc("Created On") %]</dt>
+                        <dd>[% issue.created_on %]</dd>
+                    </dl>
+                    <dl class="sidebyside">
+                        <dt>[% loc("Modified On") %]</dt>
+                        <dd>[% issue.modified_on %]</dd>
+                    </dl>
+                </td>
+            </tr>
+            <tr>
+                <td class="edit" colspan=2>
+                    <p>
+                        <span>[% loc('Comments') %]</span><br>
+                        <a target="_blank" href="/man/Markup">([% loc('Markdown is enabled.') %])</a><br>
+                        <textarea id="comment" name="comment" style="width:100%;height:100px;font-size:0.8em;"></textarea>
+                    </p>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+<div id="issue_title">
+    <h2 class="issue_id">#[% issue.id %] [% issue.title %]</h2>
+</div>
+
+
+<div id="details" class="bround5 border">
+
+    <h3 class="title">[% loc("Details") %] <button onclick="$('#edit_dialog').dialog('open');">[% loc('Edit') %]</button></h3>
+
+    <div class="left">
+        <dl class="sidebyside">
+            <dt>[% loc("Title") %]</dt> 
+            <dd style="width:auto;">
+                [% issue.title %]
+            </dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc("Project") %]</dt>
+            <dd><a href="/project/[% project.slug %]">[% project.name %]</a></dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc("Issue Type") %]</dt>
+            <dd>[% loc(issue.issue_type) %]</dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc("Milestone") %]</dt>
+            <dd><a href="/project/[% project.slug %]?milestone=[% milestone.name %]">[% milestone.name %]</a></dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc("Assigned To") %]</dt>
+            <dd>[% fmt_issue_val(issue.assigned_to) %]</dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc("Target") %]</dt>
+            <dd>[% fmt_issue_val(issue.target) %]</dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc("Version") %]</dt>
+            <dd>[% fmt_issue_val( issue.version ) %]</dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc("Cc") %]</dt>
+            <dd>[% fmt_issue_val( issue.cc ) %]</dd>
+        </dl>
+    </div>
+
+    <div class="right">
+        <dl class="sidebyside">
+            <dt>[% loc("Severity") %]</dt>
+            <dd>[% fmt_issue_val( issue.severity )%]</dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc("Resolution") %]</dt>
+            <dd>[% fmt_issue_val( issue.resolution ) %]</dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc("Reported By") %]</dt>
+            <dd>[% issue.author || 'unknown' %]</dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc("Sub-Issues") %]</dt>
+            <dd>
+                [% IF issue.children.0 %]
+                    [% FOREACH subissue IN issue.children %]
+                        [% fmt_subissue_link(subissue) %]
+                        [%- UNLESS loop.last %], [% END %]
+                    [% END %]
+                [% ELSE %]
+                    <span class="undefined">([% loc("undefined") %])</span>
+                [% END %]
+            </dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc("Due on") %]</dt>
+            <dd>[% fmt_issue_val( issue.due_on ) %]</dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc("Created On") %]</dt>
+            <dd>[% issue.created_on %]</dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc("Modified On") %]</dt>
+            <dd>[% issue.modified_on %]</dd>
+        </dl>
+    </div>
+    <div class="term"></div>
+
+</div>
+
+<div id="description" class="bround5 border">
+    <h3>[% loc("Description") %]</h3>
+    <div class="description" style="margin:5px; padding:5px;">
+        <span id="disp_description">[% issue.description | markdown %]</span>
+        <span class="editable">[[% loc('Edit') %]]</span>
+        <span class="editview">
+            <form action="/issue/[% issue.id %]/edit" method="POST">
+                <p>
+                   <a target="_blank" href="/man/Markup">([% loc('Markdown is enabled.') %])</a><br>
+                   <textarea name="description" id="description_body" style="width:400px;height:240px;">[% issue.description %]</textarea>
+                   <input type="hidden" name="subissue" value="[% FOREACH sub_issue IN issue.children %][% sub_issue.id %][% UNLESS loop.last %],[% END %][% END %]">
+                </p>
+                <p><input type="button" id="description_preview" value="[% loc('Preview') %]"> <input type="submit" value="[% loc('Submit') %]"></p>
+            </form>
+        </span>
+    </div>
+</div>
+
+<ul id="submenu" class="sidebyside" >
+    <li class="border bround5 button" onclick="subinfo_show('comments');">[% loc('Comments') %]</li>
+    <li class="border bround5 button" onclick="subinfo_show('files');">[% loc('Files') %]</li>
+    <li class="border bround5 button" onclick="subinfo_show('actions')">[% loc('Actions') %]</li>
+</ul>
+
+<div id="subinfo" class="bround5 border">
+
+    <div id="files" class="hidden">
+        <h3>[% loc("Files") %]</h3>
+        [% FOREACH file IN files %]
+        <div class="description">
+            <p><span class="author">[% file.author || 'unknown' %]</span></p>
+            <p>attached '[% file.filename %]' ([% file.mimetype %]:[% file.filesize %]Bytes)</p>
+            <p>- [% file.created_on %]</p>
+            [% IF file.mimetype == 'image/jpeg' || file.mimetype == 'image/png' || file.mimetype == 'image/gif' %]
+            <p><a href="/attachment/view/[% file.id %]"><img class="attached" src="/attachment/view/[% file.id %]" /></a> <a href="/attachment/[% file.id %]/remove">[[% loc('remove this file') %]]</a></p>
+            [% ELSE %]
+            <p><a href="/attachment/view/[% file.id %]">[[% loc('show this file') %]]</a> <a href="/attachment/[% file.id %]/remove">[[% loc('remove this file') %]]</a></p>
+            [% END %]
+        </div>
+        [% END %]
+        <div>
+            <form action="/issue/[% issue.id %]/attach" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="issue_id" value="[% issue.id %]" />
+                <p>
+                    add a new file: <input id="attach_file" type="file" name="file" onchange="var disp='none';if(this.value){disp='inline';}$('#attach_submit').css('display',disp);" />
+                    <span id="attach_submit" style="display: none;">
+                        <input type="submit" value="attach" />
+                        <input type="button" value="clear" onclick="$('#attach_file').val('');$('#attach_file').change();" />
+                    </span>
+                </p>
+            </form>
+        </div>
+    </div>
+    
+    <div id="issues" class="hidden">
+        <h3>[% loc("Parent-Issues") %]</h3>
+        <ul>
+            [% IF ! issue.parents.0 %]<li>[% loc("undefined") %]</li>[% END %]
+            [% FOREACH parent_issue IN issue.parents %]
+            <li><a href="/issue/[% parent_issue.id %]">#[% parent_issue.id %] - [% parent_issue.title %]</a> <span class="[% parent_issue.severity %]">[% parent_issue.severity %]</span> [[% parent_issue.resolution %]]</li>
+            [% END %]
+        </ul>
+        <h3>[% loc("Sub-Issues") %]</h3>
+        <ul>
+            [% IF ! issue.children.0 %]<li>[% loc("undefined") %]</li>[% END %]
+            [% FOREACH sub_issue IN issue.children %]
+            <li><a href="/issue/[% sub_issue.id %]">#[% sub_issue.id %] - [% sub_issue.title %]</a> <span class="[% sub_issue.severity %]">[% sub_issue.severity %]</span> [[% sub_issue.resolution %]]</li>
+            [% END %]
+            <li>[<a href="#" id="make_rel">[% loc('Make Relation') %]</a>]</li>
+        </ul>
+    </div>
+    
+    <div id="comments">
+        [% IF (member) %]
+        <form id="comment_form" action="/issue/[% issue.id %]/comment" method="POST">
+        <p>
+          <a target="_blank" href="/man/Markup">([% loc('Markdown is enabled.') %])</a><br>
+          <textarea id="comment_body" name="body"></textarea>
+        </p>
+        <input type="button" id="preview_button" value="[% loc('Preview') %]">
+        <input type="submit" name="submit" value="[% loc('Submit') %]">
+        </form>
+        <hr style="border:0px;border-bottom:1px dashed #ccc;" />
+        [% ELSE %]
+        <a href="/login?.next=[% "/issue/" _ issue.id | uri %]">login</a>
+        [% END %]
+
+        <h3 id="comment_tab">[% loc("Comments") %]</h3>
+    
+        [% FOREACH comment IN comments %]
+        <div class="description" comment_id="[% comment.id %]">
+            <p class="comment_header"><span class="author">[% comment.author || 'unknown' %]</span> added a comment - [% comment.created_on %]</p>
+            <span class="comment_body">[% comment.body | markdown %]</span>
+            <form class="hidden comment_edit" action="/issue/[% issue.id %]/comment/[% comment.id %]/edit" method="POST">
+                <textarea name="body">[% comment.body %]</textarea>
+                <p><input type="submit" value="[% loc('Submit') %]"> <input type="button" onclick="dismiss_edit_comment('[% comment.id %]')" value="[% loc('Cancel') %]"></p>
+            </form>
+        </div>
+        [% END %]
+    </div>
+    
+    <div id="actions" class="hidden">
+        <h3>[% loc("Actions") %]</h3>
+        
+        [% FOREACH action IN actions %]
+        <div class="description action">
+            <p><span class="author">[% action.author || 'unknown' %]</span> [% action.message | markdown %] - [% action.created_on %]</p>
+        </div>
+        [% END %]
+    </div>
+
+</div>
+
+[% END %]

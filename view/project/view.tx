@@ -1,0 +1,109 @@
+[% WRAPPER 'wrapper.tx' %]
+
+<script type="text/javascript">
+<!--
+
+$(document).ready(function(){
+    $('.author').each(function(i, author){
+        var mail = $(author).text();
+        $(author).before('<img class="avatar" id="avatar_'+ i + '">');
+        show_avatar('#avatar_'+i, mail);
+    });
+});
+
+-->
+</script>
+
+[% INCLUDE 'search_gadget_header.tx' %]
+
+[% MACRO search_gadget( id, query ) BLOCK %]
+[% INCLUDE 'search_gadget.tx' WITH id=id, query=query %]
+[% END %]
+
+[% MACRO gauge( summary ) BLOCK %]
+[% SET ratio = summary.ratio -%]
+<table style="padding:0px;" class="gauge_container" cellspacing=0>
+  <tr>
+    <td style="padding:0px;width:[% 100 * ratio %]%;background-color: #69f;" class="gauge" ></td>
+    <td style="padding:0px;width:[% 100 - ( 100 * ratio ) %]%;background-color: #ffe;"></td>
+  </tr>
+</table>
+<span class="gauge_val">[% 100 * ratio %]% ([% summary.finished %] / [% summary.count %])</span>
+[% END %]
+
+
+<h2 class="title">
+    [% project.name %]
+    <span class="submenu"> [<a href="/project/[% project.slug %]/issue/report">[% loc('New issue') %]</a>]</span>
+    <span class="submenu"> [<a href="/admin/project/[% project.slug %]">[% loc('Project Admin') %]</a>]</span>
+    [% joined = 0 %]
+    [% FOREACH p IN my_projects %][% IF p.slug == project.slug %][% joined = 1 %][% END %][% END %]
+    [% IF joined %]<span class="submenu"> [<s>[% loc('Join to this project') %]</s>]</span>
+    [% ELSE %]<span class="submenu"> [<a href="/admin/project/[% project.slug %]/member/add?account_id=[% member.author %]&author=[% member.author %]">[% loc('Join to this project') %]</a>]</span>
+    [% END %]
+    <p class="description">[% project.description %]</p>
+</h2>
+
+<div class="gadget bround5">
+    <h4 class="gadget_title bround5 opaque">[% loc('Progress') %]</h4>
+    <table class="list bround5" cellspacing=0>
+        <tr>
+            <th>[% loc('Milestone') %]</th>
+            <th>[% loc('Due on') %]</th>
+            <th>[% loc('Progress') %]</th>
+        </tr>
+        [% i = 0 %]
+        [% FOREACH milestone IN milestones %]
+        [% i = i + 1 %]
+        [% class = 'flip' %]
+        [% class = 'flop' IF i % 2 == 0%]
+        <tr class="[% class %]">
+            <td><a href="/project/[% project.slug %]?milestone=[% milestone.name %]">[% milestone.name %]</a></td>
+            <td>[% milestone.due_on || '---' %]</td>
+            <td>[% gauge( milestone.issue_summary ) %]</td>
+        </tr>
+        [% END %]
+    </table>
+</div>
+
+[% query_name = loc('Issues') _ ' - ' _ project.name %]
+[% IF severity %][% query_name = query_name _ ' / ' _ loc('Severity') _ ':' _ severity %][% END %]
+[% IF resolution %][% query_name = query_name _ ' / ' _ loc('Resolution') _ ':' _ resolution %][% END %]
+[% query = { name => query_name, query => { project_id => [ project.id ], severity => [ severity ], resolution => [ resolution ] } } %]
+[% search_gadget( 'issue', query ) %]
+
+<div class="gadget bround5">
+    <h4 class="gadget_title bround5 opaque">[% loc('History') %]</h4>
+    <div id="history_header">
+        <table class="actions" width=100% cellspacing=0>
+            <tr class="table_header">
+                <th width="20%">[% loc('Author') %]</th>
+                <th width="10%">[% loc('Issue') %] ID</th>
+                <th width="15%">[% loc('Action') %]</th>
+                <th width="40%">[% loc('Message') %]</th>
+                <th width="15%">[% loc('Created on') %]</th>
+            </tr>
+        </table>
+    </div>
+    <div id="history_body">
+        <table class="actions" width=100% cellspacing=0>
+            [% var = 0 %]
+            [% FOREACH action IN actions %]
+            [% var = var + 1 %]
+            [% class = 'flip' %]
+            [% class = 'flop' IF var % 2 == 0 %]
+            <tr class="action [% class %]" id="action_[% action.id %]">
+                <td width="20%">
+                    <a class="author" href="/member/[% action.author %]">[% action.author %]</a>
+                </td>
+                <td width="10%"><a href="/issue/[% action.issue_id %]">#[% action.issue_id %]</a></td>
+                <td width="15%">[% loc(action.action) %]</td>
+                <td width="40%">[% loc(action.message) %]</td>
+                <td width="15%">[% action.created_on %]</td>
+            </tr>
+            [% END %]
+        </table>
+    </div>
+</div>
+
+[% END %]

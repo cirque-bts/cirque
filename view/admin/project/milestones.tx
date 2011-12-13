@@ -1,0 +1,17 @@
+[% WRAPPER "wrapper.tx" %]
+<h2>Milestones for [% project.name %]</h2>
+
+<table>
+<tr>
+    <th>Name</th>
+    <th>Due on</th>
+</tr>
+[% FOREACH milestone IN milestones %]
+<tr>
+    <td> [% milestone.name %] </td>
+    <td> [% milestone.due_on %] </td>
+</tr>
+[% END %]
+</table>
+
+[% END %]

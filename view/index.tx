@@ -1,0 +1,103 @@
+[% WRAPPER "wrapper.tx" %]
+
+<style type="text/css">
+<!--
+
+.container {
+    padding: 1.0em;
+}
+
+.issues {
+    width: 100%;
+}
+
+.issues tr th,
+.issues tr td {
+    padding: 0.6em;
+}
+
+.critical {
+    color: #ff0000;
+}
+
+.param.id {
+    width: 8%;
+}
+.param.project {
+    width: 15%;
+}
+.param.title {
+    width: 28%;
+}
+.param.severity {
+    width: 9%;
+}
+.param.type {
+    width: 10%;
+}
+.param.resolution {
+    width: 10%;
+}
+.param.note {
+    width: 20%;
+}
+</style>
+
+[% MACRO issue_list_head() BLOCK %]
+    <tr class="table_header">
+        <th class="param id">[% loc('ID') %]</th>
+        <th class="param project">[% loc('Project') %]</th>
+        <th class="param title">[% loc('Title') %]</th>
+        <th class="param severity">[% loc('Severity') %]</th>
+        <th class="param type">[% loc('Type') %]</th>
+        <th class="param resolution">[% loc('Resolution') %]</th>
+        <th class="param note">[% loc('Note') %]</th>
+    </tr>
+[% END %]
+
+[% MACRO issue_view(i, class) BLOCK %]
+    <tr class="issue [% class %]">
+        <td class="param id">#[% i.id %]</td>
+        <td class="param project"><span class="coloricon bround5" style="background-color:#[% i.project_id.substr(0,6) %];"></span><a href="/project/[% project.${i.project_id}.slug %]">[% project.${i.project_id}.name %]</a></td>
+        <td class="param title"><a href="/issue/[% i.id %]">[% i.title %]</a></td>
+        <td class="param severity [% i.severity %]">[% i.severity %]</td>
+        <td class="param issue_type">[% i.issue_type %]</td>
+        <td class="param resolution"><img src="/static/images/status_[% i.resolution %].png" title="[% loc('Resolution')%]"> [% i.resolution %]</td>
+        <td class="param note">
+        [% IF i.assigned_to %]<img src="/static/images/user16.png" title="[% loc('Assigned to')%]"> <a href="/member/[% i.assigned_to %]">[% i.assigned_to %]</a><br>[% END %]
+        [% IF i.due_on %]<img src="/static/images/clock16.png" title="[% loc('Due on')%]"> [% i.due_on %]<br>[% END %]
+        </td>
+    </tr>
+[% END %]
+
+[% IF member %]
+
+<h2>[% loc("Issues assigned to you") %]</h2>
+<div class="container">
+    <table class="issues" cellspacing=0>
+        [% issue_list_head() %]
+        [% val = 0 %]
+        [% FOREACH i IN assigned %]
+          [% val = val + 1 %]
+          [% class = 'flip' %]
+          [% class = 'flop' IF val % 2 == 0 %]
+          [% issue_view(i, class) %]
+        [% END %]
+    </table>
+</div>
+
+<h2>[% loc("Issues reported by you") %]</h2>
+<div class="container">
+    <table class="issues" cellspacing=0>
+        [% issue_list_head() %]
+        [% FOREACH i IN reported %]
+          [% val = val + 1 %]
+          [% class = 'flip' %]
+          [% class = 'flop' IF val % 2 == 0 %]
+          [% issue_view(i, class) %]
+        [% END %]
+    </table>
+</div>
+[% END %]
+
+[% END %]

@@ -1,0 +1,55 @@
+[% WRAPPER "wrapper.tx" %]
+<style type="text/css">
+<!--
+    #essentials {
+        border: 1px solid #ccc;
+        padding: 0em 1em 3em 1em;
+        margin: 1em;
+    }
+    .critical {
+        font-weight: bold;
+        color: #f00;
+    }
+    .sidebyside dd {
+        width: 400px;
+    }
+    .sidebyside dd input.button {
+        color: #000;
+        width: auto;
+    }
+-->
+</style>
+
+<script type="text/javascript">
+<!--
+    $(document).ready( function() {
+        $("#due_on").datepicker({ dateFormat: 'yy-mm-dd 00:00:00' });
+    } );
+-->
+</script>
+
+<h2>[% milestone.name %] - [% project.name %][% loc("'s milestone") %]</h2>
+
+<div id="essentials" class="bround5" style="margin-bottom: 2em">
+    <div class="over-border" style="width: 140px; top: -1em">
+        <span class="title">[% loc("Essentials") %]</span>
+    </div>
+    
+    <form action="/admin/project/[% project.slug %]/milestone/[% milestone.id %]/[% sid %]" method="POST">
+        <dl class="sidebyside">
+            <dt>[% loc("Name") %]</dt>
+            <dd><input type="text" name="name" value="[% milestone.name %]"></dd>
+        </dl>
+        <dl class="sidebyside">
+            <dt>[% loc("Due on") %]</dt>
+            <dd>
+                <input type="text" name="due_on" id="due_on" value="[% milestone.due_on %]" >
+                <input type="button" class="button" onclick="$('#due_on').val('')" value="[% loc('Clear') %]">
+                <input type="submit" class="button" value="[% loc('Submit') %]">
+            </dd>
+        </dl>
+    </form>
+
+</div>
+
+[% END %]

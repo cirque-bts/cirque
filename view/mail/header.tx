@@ -1,0 +1,6 @@
+From: cirque@[% domain.mail.from %]
+Subject: [[% project.slug %] #[% issue.id %]] [% issue.title %]
+X-Cirque-Acion: [% action.action %]
+X-Cirque-Project-URL: [% domain.web %]/project/[% project.slug %]
+X-Cirque-Issue-URL: [% domain.web %]/issue/[% issue.id %]
+X-Cirque-Project-Slug: [% project.slug %]

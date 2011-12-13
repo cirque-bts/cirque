@@ -1,0 +1,9 @@
+#!/usr/bin/env perl
+use strict;
+use lib ( "lib" );
+use Cirque::Environment;
+use Cirque::Worker::Drone;
+
+my $worker = Cirque::Worker::Drone->bootstrap();
+
+$worker->run();

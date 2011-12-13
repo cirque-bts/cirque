@@ -1,0 +1,563 @@
+msgid "Account"
+msgstr "アカウント"
+
+msgid "Projects"
+msgstr "プロジェクト"
+
+msgid "Project"
+msgstr "プロジェクト"
+
+msgid "Issues"
+msgstr "イッシュー"
+
+msgid "Login"
+msgstr "ログイン"
+
+msgid "Create New Project"
+msgstr "プロジェクト新規作成"
+
+msgid "Edit"
+msgstr "編集"
+
+msgid "Essentials"
+msgstr "基本情報"
+
+msgid "Name"
+msgstr "名前"
+
+msgid "Slug"
+msgstr "識別子"
+
+msgid "Description"
+msgstr "説明"
+
+msgid "Repository"
+msgstr "レポジトリ"
+
+msgid "Issue"
+msgstr "イッシュー"
+
+msgid "Issue ID"
+msgstr "ID"
+
+msgid "View issues"
+msgstr "表示"
+
+msgid "New issue"
+msgstr "新規イッシュー"
+
+msgid "Milestones"
+msgstr "マイルストーン"
+
+msgid "Milestone"
+msgstr "マイルストーン"
+
+msgid "New milestone"
+msgstr "新規マイルストーン"
+
+msgid "Milestone #"
+msgstr "マイルストーン番号"
+
+msgid "Title"
+msgstr "タイトル"
+
+msgid "Due on"
+msgstr "〆切り日時"
+
+msgid "Details"
+msgstr "詳細"
+
+msgid "Issue Type"
+msgstr "種別"
+
+msgid "Assigned To"
+msgstr "担当者"
+
+msgid "Target"
+msgstr "ターゲット"
+
+msgid "Version"
+msgstr "バージョン"
+
+msgid "Severity"
+msgstr "重要度"
+
+msgid "Resolution"
+msgstr "状態"
+
+msgid "Reported By"
+msgstr "報告者"
+
+msgid "Created On"
+msgstr "作成日時"
+
+msgid "Modified On"
+msgstr "変更日時"
+
+msgid "Actions"
+msgstr "履歴"
+
+msgid "Files"
+msgstr "ファイル"
+
+msgid "File"
+msgstr "ファイル"
+
+msgid "Sub-Issues"
+msgstr "サブイッシュー"
+
+msgid "Parent-Issues"
+msgstr "親イッシュー"
+
+msgid "Comments"
+msgstr "コメント"
+
+msgid "Legend"
+msgstr "凡例"
+
+msgid "Past Due Date"
+msgstr "〆切り超過"
+
+msgid "Approaching Due Date"
+msgstr "〆切り近い"
+
+msgid "Fixed"
+msgstr "修正済み"
+
+msgid "Closed"
+msgstr "クローズ"
+
+msgid "Duplicate"
+msgstr "他と重複"
+
+msgid "Project page"
+msgstr "プロジェクトのページ"
+
+msgid "Show all issues"
+msgstr "全て表示"
+
+msgid "Show active issues"
+msgstr "アクティブな物だけを表示"
+
+msgid "Issues assigned to you"
+msgstr "あなたが担当しているイッシュー"
+
+msgid "Issues reported by you"
+msgstr "あなたが作成したイッシュー"
+
+msgid "Project Name"
+msgstr "プロジェクト名"
+
+msgid "Basic Information"
+msgstr "基本情報"
+
+msgid "Used for URLs and identifiers"
+msgstr "URLおよびプロジェクトの識別に使用します"
+
+msgid "Repository Information"
+msgstr "レポジトリ情報"
+
+msgid "Project Repository"
+msgstr "プロジェクトのレポジトリ"
+
+msgid "add more"
+msgstr "さらに追加"
+
+msgid "Confirm Project Data"
+msgstr "プロジェクト情報の確認"
+
+msgid "Repositories"
+msgstr "レポジトリ"
+
+msgid "Confirm and Create"
+msgstr "この内容で作成"
+
+msgid "Attachment"
+msgstr "添付ファイル"
+
+msgid "How To Reproduce"
+msgstr "再現方法"
+
+msgid "undefined"
+msgstr "未定義"
+
+msgid "Open Issues"
+msgstr "オープン状態のイッシュー"
+
+msgid "Edit Project Information"
+msgstr "プロジェクト情報の編集"
+
+msgid "'s milestone"
+msgstr "のマイルストーン"
+
+msgid "Submit"
+msgstr "送信"
+
+msgid "Clear"
+msgstr "クリア"
+
+msgid "Preview"
+msgstr "プレビュー"
+
+msgid "Make Relation"
+msgstr "他のイッシューをサブイッシューとして紐付ける"
+
+msgid "Markdown is enabled."
+msgstr "Markdownが使用できます"
+
+msgid "Project Members"
+msgstr "プロジェクトメンバー"
+
+msgid "Additional Member"
+msgstr "追加のメンバー"
+
+msgid "Add"
+msgstr "追加"
+
+msgid "Delete"
+msgstr "削除"
+
+msgid "Verify Fixed"
+msgstr "修正内容を確認"
+
+msgid "Issues List"
+msgstr "イッシュー一覧"
+
+msgid "New Milestone"
+msgstr "新規マイルストーン"
+
+msgid "Branches"
+msgstr "ブランチ"
+
+msgid "'s Repository"
+msgstr "のレポジトリ"
+
+msgid "Manual"
+msgstr "マニュアル"
+
+msgid "Latest Issues"
+msgstr "最新のイッシュー"
+
+msgid "alphabet, number, '_' and '-' is allowed"
+msgstr "半角英数字と'_'および'-'が使用できます。"
+
+msgid "Project Name is required"
+msgstr "プロジェクト名は必須です"
+
+msgid "Slug is required"
+msgstr "識別子は必須です"
+
+msgid "Next"
+msgstr "次へ"
+
+msgid "add repository"
+msgstr "レポジトリ追加"
+
+msgid "clear all"
+msgstr "全てクリア"
+
+msgid "git repository URL"
+msgstr "gitレポジトリのURL"
+
+msgid "Type"
+msgstr "種別"
+
+msgid "Note"
+msgstr "備考"
+
+msgid "Progress"
+msgstr "進捗"
+
+msgid "Search"
+msgstr "検索"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Milestone Name"
+msgstr "マイルストーン名称"
+
+msgid "Various"
+msgstr "その他"
+
+msgid "Fresh Issues"
+msgstr "最近更新されたイッシュー"
+
+msgid "Logout"
+msgstr "ログアウト"
+
+msgid "Document"
+msgstr "ドキュメント"
+
+msgid "Check/Uncheck All"
+msgstr "チェック全切替"
+
+msgid "Change Resolution"
+msgstr "状態の変更"
+
+msgid "Author"
+msgstr "実施者"
+
+msgid "Action"
+msgstr "アクション"
+
+msgid "Message"
+msgstr "メッセージ"
+
+msgid "Created on"
+msgstr "作成日時"
+
+msgid "History"
+msgstr "履歴"
+
+msgid "show this file"
+msgstr "ファイルを見る"
+
+msgid "remove this file"
+msgstr "ファイル削除"
+
+msgid "Admin"
+msgstr "管理"
+
+msgid "Project Admin"
+msgstr "プロジェクト管理"
+
+msgid "synchronize"
+msgstr "同期"
+
+msgid "view / edit"
+msgstr "閲覧/編集"
+
+msgid "browse"
+msgstr "ブラウズ"
+
+msgid "History of Issue Summary"
+msgstr "イッシュー統計履歴"
+
+msgid "issue.comment"
+msgstr "コメント追加"
+
+msgid "issue.create"
+msgstr "イッシュー新規作成"
+
+msgid "issue.edit"
+msgstr "イッシュー編集"
+
+msgid "issue.attach"
+msgstr "ファイル添付"
+
+msgid "issue.remove_attach"
+msgstr "添付ファイル削除"
+
+msgid "added a comment"
+msgstr "-"
+
+msgid "added issue [_1]"
+msgstr "'%1'を新規追加しました"
+
+msgid "Changed field [_1] from '[_2]' to '[_3]'"
+msgstr "%1を'%2'から'%3'に変更しました"
+
+msgid "Empty"
+msgstr "情報なし"
+
+msgid "Click to Edit"
+msgstr "クリックで編集可能"
+
+msgid "click to edit"
+msgstr "クリックで編集可能"
+
+msgid "Click to Clear"
+msgstr "クリックで消去"
+
+msgid "Show"
+msgstr "見る"
+
+msgid "Hide"
+msgstr "隠す"
+
+msgid "Notify"
+msgstr "通知"
+
+msgid "List"
+msgstr "一覧"
+
+msgid "Notify List"
+msgstr "通知一覧"
+
+msgid "Really delete all notifications?"
+msgstr "本当に通知を消去しますか？"
+
+msgid "Create This Project"
+msgstr "このプロジェクトを作成する"
+
+msgid "Close"
+msgstr "閉じる"
+
+msgid "Edit Issue"
+msgstr "イッシューを編集する"
+
+msgid "Really want to create this project?"
+msgstr "このプロジェクトを作成しますか？"
+
+msgid "Really want to delete this project?"
+msgstr "このプロジェクトを削除しますか？"
+
+msgid "Delete This Project"
+msgstr "このプロジェクトを削除"
+
+msgid "Commit Message"
+msgstr "コミットメッセージ"
+
+msgid "Date"
+msgstr "日時"
+
+msgid "Commit Hash"
+msgstr "ハッシュ値"
+
+msgid "New issue was reported."
+msgstr "新しいイッシューが登録されました。"
+
+msgid "A comment was appended."
+msgstr "コメントが追加されました。"
+
+msgid "Finished"
+msgstr "完了"
+
+msgid "Opened"
+msgstr "未完"
+
+msgid "Join to this project"
+msgstr "このプロジェクトに参加"
+
+msgid "My Project"
+msgstr "Myプロジェクト"
+
+msgid "Projects List"
+msgstr "プロジェクト一覧"
+
+msgid "Really want to remove ?"
+msgstr "本当にこのプロジェクトから削除しますか？"
+
+msgid "Please input mail-address"
+msgstr "新規メンバーのメールアドレスを入力してください。"
+
+msgid "Required"
+msgstr "必須項目"
+
+msgid "Email Notification"
+msgstr "Eメールによる通知"
+
+msgid "Enabled"
+msgstr "有効"
+
+msgid "Disabled"
+msgstr "無効"
+
+msgid "critical"
+msgstr "重要"
+
+msgid "major"
+msgstr "通常"
+
+msgid "minor"
+msgstr "低め"
+
+msgid "nitpick"
+msgstr "指摘"
+
+msgid "wishlist"
+msgstr "要望"
+
+msgid "open"
+msgstr "未着手"
+
+msgid "in-progress"
+msgstr "着手"
+
+msgid "verify-fixed"
+msgstr "確認"
+
+msgid "fixed"
+msgstr "修正済み"
+
+msgid "closed"
+msgstr "クローズ"
+
+msgid "wontfix"
+msgstr "修正不要"
+
+msgid "dup"
+msgstr "重複"
+
+msgid "bug"
+msgstr "不具合"
+
+msgid "feature"
+msgstr "新機能"
+
+msgid "improvement"
+msgstr "改善要求"
+
+msgid "wishlist"
+msgstr "要望"
+
+msgid "Title must be input!"
+msgstr "タイトルは必須項目です。"
+
+msgid "Error"
+msgstr "エラー"
+
+msgid "Invalid"
+msgstr "値が不正です"
+
+msgid "Link Pattern"
+msgstr "リンクパターン"
+
+msgid "OK to submit changes?"
+msgstr "変更内容を反映しますか？"
+
+msgid "Default Assignment"
+msgstr "デフォルトの担当者"
+
+msgid "If enabled, notify by email to each project members when new issue was reported."
+msgstr "有効にした場合、新しいイッシューが投稿されたときに、プロジェクトメンバー全員へメール通知を行います。"
+
+msgid "Register new account"
+msgstr "新規アカウント登録"
+
+msgid "Could not register with specified values."
+msgstr "入力された内容では登録できません。"
+
+msgid "Registering an account was successful."
+msgstr "アカウントの登録に成功しました。"
+
+msgid "Change password"
+msgstr "パスワードの変更"
+
+msgid "Delete this account"
+msgstr "このアカウントを削除"
+
+msgid "New Password"
+msgstr "新しいパスワード"
+
+msgid "Confirm"
+msgstr "確認"
+
+msgid "Password was changed."
+msgstr "パスワードが変更されました。"
+
+msgid "Really want to delete this account?"
+msgstr "本当にこのアカウントを削除してもよいですか？"
+
+msgid "Really okay?"
+msgstr "本当によろしいですか？"
+
+msgid "Mail"
+msgstr "メール"
+
+msgid "Icon"
+msgstr "アイコン"
+
+msgid "Projects are not exists yet."
+msgstr "プロジェクトはまだありません。"

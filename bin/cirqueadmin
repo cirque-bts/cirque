@@ -1,0 +1,130 @@
+#!/usr/bin/env perl
+use strict;
+use FindBin;
+use lib ("lib", "$FindBin::Bin/../lib", $ENV{HOME}."/extlib/lib/perl5");
+use Cwd();
+use File::Basename();
+use File::Spec();
+BEGIN {
+    my $file = Cwd::abs_path(__FILE__);
+    my $dir  = File::Basename::dirname( $file );
+    my $lib  = Cwd::abs_path( File::Spec->catdir( $dir, File::Spec->updir, "lib" ) );
+    unshift @INC, $lib;
+}
+use Cirque::Environment;
+use Cirque::Context;
+use Getopt::Long;
+
+main();
+
+sub main {
+    my $component = shift @ARGV;
+    my $submethod = shift @ARGV;
+
+    if (! $component) {
+        help();
+        exit 1;
+    }
+
+    my $ctxt = Cirque::Context->bootstrap;
+    my $function = sprintf "%s_%s", $component, $submethod;
+    my $code = __PACKAGE__->can($function);
+    if ($code) {
+        $code->($ctxt, @ARGV);
+    } else {
+        die "No such sub command $function";
+    }
+}
+
+sub help {
+    print <<EOM;
+cirqueadmin component cmd [...args...]
+
+servicer info    servicer_id
+servicer create  --id=xxxx --name=xxxx
+servicer remove  servicer_id
+
+EOM
+}
+
+# XXX Refactor all this later
+
+sub dump_json {
+    require JSON;
+    print JSON->new->utf8(1)->pretty(1)->canonical(1)->encode( shift );
+}
+
+sub dump_yaml {
+    require YAML;
+    print YAML::Dump( shift );
+}
+
+sub dump_perl {
+    require Data::Dumper;
+    local $Data::Dumper::Terse = 1;
+    local $Data::Dumper::Indent = 1;
+    local $Data::Dumper::Sortkeys = 1;
+
+    print Data::Dumper::Dumper( shift );
+}
+
+sub servicer_create {
+    my ($ctxt, @args) = @_;
+
+    my %opts;
+    {
+        local @ARGV = @args;
+        if (! GetOptions( \%opts, "id=s", "name=s" ) ) {
+            return 0;
+        }
+    }
+
+    my $servicer_api = $ctxt->get('API::Servicer');
+    my $servicer = $servicer_api->create({
+        id => $opts{id},
+        name => $opts{name},
+    });
+    servicer_info( $ctxt, $opts{id} );
+}
+
+sub servicer_info {
+    my ($ctxt, @args) = @_;
+
+    my $id;
+    my $format = "json";
+    {
+        local @ARGV = @args;
+        if (! GetOptions( "format=s" => \$format )) {
+            # XXX properly format error later
+            return 0;
+        }
+        ($id) = @ARGV;
+    }
+
+    my $servicer_api = $ctxt->get('API::Servicer');
+    my $servicer = $servicer_api->find( $id );
+    return unless $servicer;
+
+    my $columns = $servicer->get_columns();
+    if ( $format eq 'json' ) {
+        dump_json( $columns );
+    } elsif ( $format eq 'yaml' ) {
+        dump_yaml( $columns );
+    } else {
+        dump_perl( $columns );
+    }
+}
+
+sub servicer_remove {
+    my ($ctxt, $id) = @_;
+
+    if ( servicer_info($ctxt, $id) ) {
+        print "Really delete this servicer? ";
+        my $y_n = <STDIN>;
+        return unless $y_n =~ /^y(?:es)?$/i;
+    }
+    my $servicer_api = $ctxt->get('API::Servicer');
+    $servicer_api->delete( { id => $id } );
+}
+
+1;

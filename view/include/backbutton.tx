@@ -1,0 +1,11 @@
+
+<span id="back"></span>
+<script type="text/javascript">
+<!--
+    if( document.referrer ) {
+        if ( location.pathname != '/' ) {
+            $("#back").html('<input type="button" onclick="history.back()" value="Back" />');
+        }
+    }
+-->
+</script>

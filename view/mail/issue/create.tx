@@ -1,0 +1,17 @@
+[% INCLUDE 'header.tx' %]
+[% action.author %] reported new issue.
+
+--------------------------------------------------
+Issue #[% issue.id %] - [% issue.title %]
+
+Project: [% project.name %]
+Severity: [% issue.severity %]
+Assigned to: [% issue.assigned_to || '(undefined)' %]
+Reported by: [% issue.author %]
+Due on: [% issue.due_on || '(undefined)' %]
+--------------------------------------------------
+
+Issue URL: [% domain.web %]/issue/[% issue.id %]
+
+[% INCLUDE 'sign.tx' %]
+

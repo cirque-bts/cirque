@@ -1,0 +1,14 @@
+[% INCLUDE 'header.tx' %]
+
+[% loc('A comment was appended.') %]
+
+[% domain.web %]/issue/[% issue.id %]
+
+[% loc('Project') %]: [% project.name %]
+[% loc('Issue') %]: #[% issue.id %] - [% issue.title %]
+[% loc('Reported By') %]: [% action.author %]
+
+[% comment.body %]
+
+[% INCLUDE 'sign.tx' %]
+

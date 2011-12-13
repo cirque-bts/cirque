@@ -1,0 +1,199 @@
+[% WRAPPER "wrapper.tx" %]
+
+[% MACRO required() BLOCK %]
+<span style="color:#f00;font-weight:800;" title="[% loc('Required') %]">*</span>
+[% END %]
+
+[% MACRO invalid_seal() BLOCK %]
+<span style="color:#f90;font-weight:800;">[% loc('Invalid') %]</span>
+[% END %]
+
+<style type="text/css">
+<!--
+    .sidebyside dt,
+    .sidebyside dd {
+        height: 20px;
+        vertical-align: middle;
+    }
+    .sidebyside dd {
+        width: auto;
+        max-width: 400px;
+    }
+    .sidebyside dd input {
+        width: auto;
+        margin: 2px;
+    }
+
+    #form {
+        padding: 0px;
+    }
+
+    #details {
+        padding-bottom: 4.0em;
+    }
+-->
+</style>
+
+<script type="text/javascript"> 
+<!--
+    function add_attach () {
+        var i = $('#attach_list > dl').length;
+        var n = i + 1;
+        $('#attach_list').append('<dl>File '+n+':</dl><dt><input type="file" name="attach_'+n+'" onchange="if(this.value){add_attach();}else{del_attach();}"></dt>');
+    }
+    function del_attach() {
+        var i = $('#attach_list > dl').length;
+        if ( i > 1 ) {
+            $('#attach_list > dl:last-child').remove();
+        }
+    }
+    $(document).ready( function() {
+        $("#report_submit").click( function() {
+            if ( $("#report_title").attr("value").length < 1 ) {
+                alert( "[% loc('Title must be input!') %]" );
+            }
+            else {
+                $("#report_form").submit();
+            }
+        } );
+        $("#due_on").datepicker({ dateFormat: 'yy-mm-dd 00:00:00' });
+        add_attach();
+        $("#preview_dialog").dialog({
+            autoOpen: false,
+            width: 700,
+            height: 400,
+            modal: true,
+            buttons: {
+                'Close': function(){
+                    $("#preview_dialog").html('');
+                    $(this).dialog( "close" );
+                }
+            },
+        });
+        $("#preview").click(function(){
+            $("#preview_dialog").dialog( "open" );
+            $.post( '/project/[% project.slug %]/issue/preview', $("#report_form").serializeArray(), function( html ){
+                $("#preview_dialog").html( html );
+            });
+        });
+    } );
+-->
+</script>
+
+<div id="preview_dialog" title="Preview">
+</div>
+
+<div id="form">
+    <form id="report_form" action="/project/[% project.slug %]/issue/confirm" method="POST" enctype="multipart/form-data">
+        <dl id="parent_info" class="sidebyside">
+            <dt>[% loc("Project") %]</dt>
+            <dd><a href="/project/[% project.slug %]">[% project.name %]</a></dd>
+           [% IF parent_issue %]
+            <dt>[% loc("Parent Issue") %]</dt>
+            <dd><a href="/issue/[% parent_issue.id %]">#[% parent_issue.id %] - [% parent_issue.title %]</a></dd>
+            <input type="hidden" name="parent_issue_id" value="[% parent_issue.id %]" />
+           [% END %]
+        </dl>
+
+        <h4 class="term" style="margin:0px;">[% required() %] = [% loc('Required') %]</h4>
+
+        [% IF error %]
+        <div id="error" class="term">
+            <span style="color:#f00;font-weight:800;">[% loc('Error') %]</span> [% error %]
+        </div>
+        [% END %]
+
+        <div id="details" class="border bround5 term">
+            <h3>[% loc("Details") %]</h3>
+
+            <dl class="sidebyside">
+                <dt>[% loc("Title") %] [% required() %] [% invalid_seal() IF invalid == 'title' %]</dt>
+                <dd><input id="report_title" type="text" size="100" name="title" style="width:70%;" /></dd>
+            </dl>
+            
+            <dl class="sidebyside">
+                <dt>[% loc("Issue Type") %] [% required() %] [% invalid_seal() IF invalid == 'issue_type' %]</dt>
+                <dd>
+                    <select name="issue_type">
+                        <option value="bug">[% loc('bug') %]</option>
+                        <option value="feature">[% loc('feature') %]</option>
+                        <option value="improvement">[% loc('improvement') %]</option>
+                        <option value="wishlist">[% loc('wishlist') %]</option>
+                    </select>
+                </dd>
+            </dl>
+
+            <dl class="sidebyside">
+                <dt>[% loc("Milestone") %] [% required() %] [% invalid_seal() IF invalid == 'milestone_id' %]</dt>
+                <dd>
+                    <select name="milestone_id">
+                        [% FOREACH m IN milestones %]
+                        <option value="[% m.id %]" [% 'selected' IF m.name == 'Not defined' %]>#[% m.id %] - [% m.name %]</option>
+                        [% END %]
+                    </select>
+                </dd>
+            </dl>
+            
+            <dl class="sidebyside">
+                <dt>[% loc("Version") %]</dt>
+                <dd><input type="text" size="40" name="version" /></dd>
+            </dl>
+            
+            <dl class="sidebyside">
+                <dt>[% loc("Assigned To") %]</dt>
+                <dd><input id="assigned_to" type="text" size="40" name="assigned_to" value="[% project.default_assignment IF project.default_assignment %]"/></dd>
+            </dl>
+            
+            <dl class="sidebyside">
+                <dt>[% loc("Target") %]</dt>
+                <dd><input type="text" size="40" name="target" /></dd>
+            </dl>
+            
+            <dl class="sidebyside">
+                <dt>[% loc("Severity") %] [% required() %] [% invalid_seal() IF invalid == 'severity' %]</dt>
+                <dd>
+                    <select name="severity">
+                    <option value="critical">[% loc('critical') %]</option>
+                    <option value="major" selected>[% loc('major') %]</option>
+                    <option value="minor">[% loc('minor') %]</option>
+                    <option value="nitpick">[% loc('nitpick') %]</option>
+                    <option value="wishlist">[% loc('wishlist') %]</option>
+                    </select>
+                </dd>
+            </dl>
+            
+            <dl class="sidebyside">
+                <dt>[% loc("Due on") %]</dt>
+                <dd>
+                    <input type="text" id="due_on" name="due_on">
+                    <input type="button" onclick="$('#due_on').val('')" value="[% loc('Clear') %]">
+                </dd>
+            </dl>
+            
+            <dl class="sidebyside">
+                <dt>[% loc("Cc") %]</dt>
+                <dd>
+                    <input type="text" name="cc">
+                </dd>
+            </dl>
+
+        </div>
+
+        <div id="description" class="border bround5 term">
+            <h3>[% loc("Description") %] / [% loc("How To Reproduce") %] [% required() %] [% invalid_seal() IF invalid == 'description' %]</h3>
+            <a target="_blank" href="/man/Markup">([% loc('Markdown is enabled.') %])</a><br>
+            <textarea name="description" cols="100" rows="20"></textarea>
+        </div>
+        
+        <div id="attach" class="border bround5 term">
+            <h3>[% loc("Attachment") %]</h3>
+            <dl id="attach_list">
+            </dl>
+        </div>
+        
+        <input id="preview" type="button" value="[% loc('Preview') %]">
+        <input id="report_submit" type="button" value="[% loc('Submit') %]">
+    </form>
+</div>
+
+[% END %]

@@ -1,0 +1,10 @@
+<p>
+    [% loc("Sub-Issues") %]
+    <select id="issue_id" onchange="select_subissue()" onfocus="delete_duplicate_subissue()">
+        <option>Choose one</option>
+        [% FOREACH issue IN issues %]
+        <option value="[% issue.id %]">#[% issue.id %] - [% issue.title %]</option>
+        [% END %]
+    </select>
+</p>
+<div id="preview"></div>

@@ -1,0 +1,73 @@
+#!/usr/bin/env perl
+
+##
+## ikachanによるIRC通知サンプル
+##
+
+use strict;
+use utf8;
+use Furl;
+use HTTP::Request::Common;
+use JSON ();
+use Text::Xslate;
+
+# 設定項目
+my $config = {
+    base_url => 'http://bts.example.com',
+    ikachan => {
+        endpoint_url => 'http://ikachan.example.com',
+        channel => '#irc_channel',
+    },
+};
+
+# 標準入力からJSON形式で通知データを取得し、デシリアライズ。
+my $json = '';
+while ( my $buf = <STDIN> ) {
+    $json .= $buf;
+}
+my $notify = JSON->new->utf8->decode( $json );
+
+# Furlとテンプレートの用意
+my $furl = Furl->new;
+my $xslate = Text::Xslate->new( syntax => 'TTerse', type => 'text' );
+my $template = '';
+while ( my $buf = <DATA> ) {
+    $template .= $buf;
+}
+
+# コメントがある場合は、通知メッセージの代わりにコメントを表示
+if ( $notify->{comment}->{body} ) {
+    my $comment = $notify->{comment}->{body};
+    if ( length $comment > 40 ) {
+        $comment = substr($comment, 0, 40). '...';
+    }
+    $notify->{message} = sprintf "「%s」", $comment;
+}
+
+# テンプレートに通知データを適用
+my $str = $xslate->render_string( $template, { 
+    %$notify,
+    config => $config,
+    subject => sprintf( '[%s:%d] #%d %s', 
+        $notify->{project}->{name},
+        $notify->{id},
+        $notify->{issue}->{id},
+        $notify->{issue}->{title},
+    ),
+} );
+
+# メッセージを1行ごとに分解し、ikachanに送信
+my @messages = split /\n/, $str;
+for my $message ( @messages ) {
+    $furl->request( 
+        POST $config->{ikachan}->{endpoint_url}.'/notice', [ 
+            channel => $config->{ikachan}->{channel},
+            message => $message,
+        ]
+    ); 
+}
+
+__DATA__
+[% subject %]
+  [% author %]: [% message %]
+  [% config.base_url %]/issue/[% issue.id %]

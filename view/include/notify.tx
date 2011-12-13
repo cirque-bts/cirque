@@ -1,0 +1,202 @@
+<style type="text/css">
+<!--
+
+#notify {
+    width: auto;
+    height: auto;
+    padding: 4px;
+    background-image: url(/static/images/triangles.png);
+    box-shadow: 3px 3px 3px #000;
+}
+
+#notify .label {
+    color: #ffe;
+    font-weight: 700;
+    text-shadow: 1px 1px 3px #000;
+}
+
+#notify .count {
+    background-color: #039;
+    box-shadow: 1px 1px 1px #000;
+    text-shadow: 1px 1px 1px #000;
+    font-weight: 700;
+    color: #ffe;
+    padding: 2px;
+}
+
+#notify_list {
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+#notify_list li {
+    font-size: 0.8em;
+    padding: 2px;
+    margin: 2px;
+}
+
+#notify_list li:hover {
+    background-color: #060;
+}
+
+-->
+</style>
+
+<script type="text/javascript">
+<!--
+
+var notify_timer;
+var notify_interval = 20000;
+var notify_timeout = 0;
+var notify_timeout_limit = 2;
+var caution = $('div#caution');
+
+var last_checked = '[% last_checked %]';
+var project = {
+[% FOREACH i IN projects %]
+    "[% i.id %]": { 
+      name: '[% i.name %]', 
+      slug: '[% i.slug %]',
+    }[% ',' UNLESS loop.last() %]
+[% END %]
+};
+
+function toggle_notify () {
+    var e = $('#notify_list');
+    if ( e.css('display') == 'none' ) {
+        e.show();
+        $(button).attr('title','[% loc('Click to clear') %]');
+    }
+    else {
+        notify_check( function() {
+            e.hide();
+            $(button).attr('src','/static/images/order_ASC.png');
+            $(button).attr('title','[% loc('Show') %]');
+        } );
+    }
+}
+
+function notify_check ( func ) {
+    if ( parseInt( $('#notify_count').text() ) > 0 ) {
+        if ( confirm('[% loc('Really delete notifications?') %]') ) {
+            $.ajax({
+                url: '/api/member/notify_checked',
+                dataType: 'json',
+                data: {
+                    account_id: '[% member.email %]'
+                },
+                success: function(){
+                    $.ajax({
+                        url: '/api/member/get_notify_checked',
+                        dataType: 'json',
+                        data: { account_id: '[% member.email %]' },
+                        success: function(json){
+                            last_checked = json.notify_checked;
+                            notify_init();
+                            func();
+                        }
+                    });
+                }
+            });
+        }
+    }
+    else {
+        func();
+    }
+}
+
+function notify_init() {
+    $('#notify_list').html('');
+    $.ajax({
+        url: '/api/issue/action',
+        dataType: 'json',
+        traditional: true,
+        async: false,
+        data: {
+            slug: [ [% FOREACH i IN projects %]"[% i.slug %]"[% ',' UNLESS loop.last() %][% END %] ],
+            last_checked: last_checked,
+        },
+        success: function(json){
+            if ( caution.css('display') == 'block' ) {
+                notify_timeout = 0;
+                caution.text('');
+                caution.hide('blind');
+                change_notify_interval( notify_interval );
+            }
+            var actions = json.actions;
+            for ( var i in actions ) {
+                var action = actions[i];
+                $('#notify_list').append(' \
+                    <li class="action clickable" style="border-left:4px solid #'+ action.project_id.substr(0,6) +';" title="'+ action.message +'" onclick="location.href=\'/issue/'+ action.issue_id +'\';"> \
+                        <table> \
+                            <tr> \
+                                <td class="whitefont" style="font-size:0.6em;" colspan=2> \
+                                    <span class="created_on">'+ action.created_on +'</span> \
+                                </td> \
+                            </tr> \
+                            <tr> \
+                                <td class="whitefont" style="font-size:0.6em;" colspan=2> \
+                                    <span class="project_name">'+ project[action.project_id].name +'</span> <span class="issue_id">#'+ action.issue_id +'</span> \
+                                </td> \
+                            </tr> \
+                            <tr> \
+                                <td> \
+                                    <img class="notify_avatar avatar" mail="'+ action.author +'"> \
+                                </td> \
+                                <td class="whitefont" style="font-size:0.6em;"> \
+                                    <span class="action_type">'+ action.action +'</span> \
+                                </td> \
+                            </tr> \
+                        </table> \
+                    </li> \
+                ');
+            }
+        },
+        error: function(xhr, stat, err) {
+            notify_timeout ++;
+            if ( notify_timeout >= notify_timeout_limit ) {
+                if ( caution.css('display') == 'none' ) {
+                    caution.text("[% loc('Offline') %]");
+                    caution.show('blind');
+                }
+                change_notify_interval( 120000 );
+            }
+        }
+    });
+    $('.notify_avatar').each(function(i, elem) {
+        var e = $(elem);
+        show_avatar(e, e.attr('mail'));
+    });
+    if ( $('#notify_list > li.action').size() > 0 ) {
+        $('#notify > .count').css('background-color', '#c30');
+        $('#notify > .count').text( $('#notify_list > li.action').size() );
+    }
+    else {
+        $('#notify > .count').css('background-color', '#039');
+        $('#notify > .count').text( 0 );
+        $('#notify_list').append('<li>[% loc('Empty') %]</li>');
+    }
+}
+
+function change_notify_interval ( interval ) {
+    if ( notify_timer ) {
+        clearInterval( notify_timer );
+    }
+    notify_timer = setInterval( function(){ notify_init() }, interval);
+}
+
+$(document).ready(function(){
+    notify_init();
+    change_notify_interval( notify_interval );
+});
+
+-->
+</script> 
+<div id="notify" class="bround5">
+    <span class="label">[% loc('Notify') %]</span>
+    <span id="notify_count" class="count bround5 clickable" onclick="toggle_notify()">0</span>
+    <span class="label"><a href="/notifications">[% loc('List') %]</a></span>
+    <ul id="notify_list" class="hidden">
+    </ul>
+</div>

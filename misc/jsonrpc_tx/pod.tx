@@ -1,0 +1,38 @@
+=head1 Available JSON-RPC Procedures
+
+[% FOREACH procedure IN procedures -%]
+=head2 [% procedure.name %]
+
+[% procedure.description %]
+
+=head3 request 
+
+[% demo(procedure.request) %]
+
+=over 4
+[% SET params = procedure.params -%]
+[% FOREACH pair IN params.kv() %]
+[%- SET param_name = pair.key -%]
+[%- SET spec = pair.value %]
+=item [% param_name %] ([% spec.isa || 'Str' %], [% spec.exists('required') ? ( spec.required ? "required" : "optional" ) : "required" %])
+
+[% spec.description %]
+[% END %]
+=back
+
+=head3 response
+
+[% demo(procedure.response) %]
+
+=over 4
+[% SET result = procedure.result -%]
+[% FOREACH pair IN result.kv() %]
+[%- SET param_name = pair.key -%]
+[%- SET spec = pair.value %]
+=item [% param_name %]
+
+[% spec.description %]
+[% END %]
+=back
+
+[% END %]

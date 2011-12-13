@@ -1,0 +1,23 @@
+[% WRAPPER "wrapper.tx" %]
+<style>
+<!--
+
+.essentials {
+    border: 1px solid #cccccc;
+    margin: 1.0em;
+    padding: 1.0em;
+}
+
+.essentials dl {
+    padding: 0.5em;
+}
+
+-->
+</style>
+<h2>[% loc("Edit Project Information") %]</h2>
+<div class="bround5 essentials">
+<h3>[% loc('Essentials') %]</h3>
+[% INCLUDE "admin/project/essentials.tx" WITH
+    action = "/admin/project/" _ project.slug _ "/edit" %]
+[% END %]
+</div>

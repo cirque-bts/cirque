@@ -1,0 +1,37 @@
+# DESCRIPTION
+
+Cirque is an Issue Tracking System.
+
+# INSTALLATION
+
+First, you have to clone cirque from repository.
+
+    $ git clone git://github.com/cirque-bts/cirque.git
+
+And, create a mysql database for cirque.
+
+    $ mysqladmin create cirque
+
+Next, create tables, triggers, and procedures into cirque database.
+
+    $ cd cirque
+    $ mysql cirque -u root < misc/cirque.sql
+
+Finally, modify etc/config.pl for your environment.
+
+# START UP CIRQUE (SINGLE DAEMON)
+
+You can start the JSONRPC and Web servers by typing the following command
+
+    $ bin/cirqued
+
+Afterwards, you can access to http://your-host:5000/ .
+
+# RUN CIRQUE ON DOTCLOUD
+
+Check cirque-on-cloud at https://github.com/cirque-bts/cirque-on-cloud
+
+# SEE ALSO
+
+http://cirque-bts.github.com/
+

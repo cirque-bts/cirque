@@ -1,0 +1,68 @@
+<div class="gadget search bround5 [% 'saved' IF query.name %]" id="rt_[% id %]" submenu=0 sortcol="severity" sortorder="ASC">
+    [% IF query.name %]
+    <h4 class="gadget_title bround5 opaque">
+        <span class="gadget_title string">[% query.name %]</span>
+        <button id="toggle_button_[% id %]" class="button" type="button" onclick="$('#search_[% id %]').show();toggle_gadget('[% id %]');"><img src="/static/images/arrow-down.png"></button>
+        [% IF id.match('^[0-9]+$') %]
+        <button id="up_button_[% id %]" class="button" type="button" onclick="seq_up('[% id %]');"><img src="/static/images/seq_up.png"></button>
+        <button id="down_button_[% id %]" class="button" type="button" onclick="seq_down('[% id %]');"><img src="/static/images/seq_down.png"></button>
+        <button id="close_button_[% id %]" class="button" type="button" onclick="del_query('[% id %]')"><img src="/static/images/close.png"></button>
+        [% END %]
+        <button type="button" id="toggle_display_[% id %]" onclick="toggle_gadget_display( $(this).children('img'), '[% id %]' ); return false;"><img src="/static/images/eye_open.png"></button>
+    </h4>
+    [% END %]
+    <form id="form_[% id %]" class="search_gadget [% 'saved' IF query.name %]" onsubmit="search_issue( '[% id %]' ); return false;">
+        [% IF query.name %]<input type="hidden" name="id" value="[% id %]">[% END %]
+        [% IF query.query.project_id.0 %]<input type="hidden" name="project_id" value="[% query.query.project_id.0 %]">[% END %]
+        <div class="basic_search [% "hidden" IF query.name %]" id="search_[% id %]">
+            [% IF ! query.name %]<img src="/static/images/logo64.png" style="float: left; margin-right: 20px;">[% END %]
+            <input class="keyword" type="text" name="keyword" value="[% query.query.keyword.0 %]">
+            <input class="submit" type="submit" value="[% loc('Search') %]" >
+            [% IF member.email && id.match('^[0-9]$') %]<input class="save" type="button" value="[% loc('Save') %]" >[% END %]
+            [% IF ! query.name %]<button class="button" id="toggle_button_[% id %]" onclick="toggle_gadget( '[% id %]' ); return false;"><img src="/static/images/arrow-down.png"></button>[% END %]
+        </div>
+        <div id="hidden_[% id %]" class="hidden submenu opaque bround5 term" style="height:240px;padding-top:1.0em;">
+            <dl class="sidebyside">
+                <dt class="title">[% loc('Project Name')%]</dt>
+                <dd><input type="text" name="project" value="[% query.query.project.0 %]" ></dd>
+                <dt class="title">[% loc('Assigned To')%]</dt>
+                <dd><input type="text" name="assigned_to" value="[% query.query.assigned_to.0 %]"></dd>
+            </dl> 
+            <dl class="sidebyside">
+                <dt class="title">[% loc('Milestone Name')%]</dt>
+                <dd><input type="text" name="milestone" value="[% query.query.milestone.0 %]"></dd>
+                <dt class="title">[% loc('Reported By')%]</dt>
+                <dd><input type="text" name="author" value="[% query.query.author.0 %]"></dd>
+            </dl> 
+            <dl class="sidebyside">
+                <dt class="title">[% loc('Target')%]</dt>
+                <dd><input type="text" name="target" value="[% query.query.target.0 %]"></dd>
+                <dt class="title">[% loc('Version')%]</dt>
+                <dd><input type="text" name="version" value="[% query.query.version.0 %]"></dd>
+            </dl> 
+            <ul class="sidebyside">
+                <li class="title">[% loc('Severity') %]</li>
+                [% FOREACH severity IN ['critical', 'major', 'minor', 'nitpick', 'wishlist'] %]
+                <li>[% loc(severity) %]<input type="checkbox" name="severity" value="[% severity %]" [% IF query.query.severity.0 %][% 'checked' IF query.query.severity.grep('^' _ severity _'$').size() %][% END %]></li>
+                [% END %]
+            </ul>
+            <ul class="sidebyside">
+                <li class="title">[% loc('Resolution') %]</li>
+                [% FOREACH resolution IN ['open', 'in-progress', 'verify-fixed', 'fixed', 'closed', 'wontfix', 'dup'] %]
+                <li>[% loc(resolution) %]<input type="checkbox" name="resolution" value="[% resolution %]" [% IF query.query.resolution.0 %][% 'checked' IF query.query.resolution.grep('^' _ resolution _ '$').size() %][% END %]></li>
+                [% END %]
+            </ul>
+            <ul class="sidebyside">
+                <li class="title">[% loc('Various') %]</li>
+                <li>[% loc('Fresh Issues') %]<input type="checkbox" name="fresh" value="1" [% 'checked' IF query.query.fresh.0 %]></li>
+            </ul>
+            <p class="term">
+                <input class="submit" type="submit" value="[% loc('Search')%]">
+            </p>
+        </div>
+    </form>
+    <form id="result_form_[% id %]" class="result_form [% 'saved' IF query.name %]">
+        <div id="result_header_[% id %]" class="term "></div>
+        <div id="result_[% id %]" class="result term [% 'saved' IF query.name %]"></div>
+    </form>
+</div>
