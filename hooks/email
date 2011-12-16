@@ -10,6 +10,7 @@ use Email::Simple;
 use Encode ();
 use JSON ();
 use Text::Xslate;
+use List::MoreUtils qw( uniq );
 
 # 設定項目
 my $config = {
@@ -31,7 +32,7 @@ my $notify = JSON->new->utf8->decode( $json );
 exit unless $notify->{project}->{enable_email};
 
 # 通知データからメール送信先を作成。
-my @mail_to = grep { $_ if defined $_ } ( 
+my @mail_to = uniq grep { $_ if defined $_ } ( 
     $notify->{author}, 
     $notify->{issue}->{assigned_to},
     map { $_->{account_id} } @{ $notify->{project}->{members} },
@@ -64,8 +65,8 @@ my $str = $xslate->render_string( $template, {
 my $email = Email::Simple->new( Encode::encode_utf8( $str ) );
 $email->header_set( 'Content-Type' => 'text/plain; charset=ISO-2022-JP' );
 $email->header_set( To => join ',', @mail_to );
-$email->header_set( Subject => Encode::encode( 'iso-2022-jp', $email->header('Subject') ) );
-$email->body_set( Encode::encode( 'iso-2022-jp', $email->body ) );
+$email->header_set( Subject => Encode::encode( 'MIME-Header-ISO_2022_JP', $email->header('Subject') ) );
+$email->body_set( Encode::encode( 'iso-2022-jp', Encode::decode( 'utf8', $email->body ) ) );
 
 # メール本文を送信する
 $sender->send( $email->as_string );
@@ -82,6 +83,8 @@ X-Cirque-Project-Slug: [% project.slug %]
 イッシュー #[% issue.id %]
 
 [% author %] : [% message %]
+[% IF comment.body %]
+[% comment.body %][% END %]
 
 イッシューURL: [% config.base_url %]/issue/[% issue.id %]
 

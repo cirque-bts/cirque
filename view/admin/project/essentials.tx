@@ -32,7 +32,10 @@
 
 <dl>
     <dt>[% loc("Email Notification") %] [% required() %] ([% loc("If enabled, notify by email to each project members when new issue was reported.") %])</dt>
-    <dd><input type="radio" name="enable_email" [% IF (project.enable_email) %]checked="checked"[% END %] />[% loc("Enabled") %] <input type="radio" name="enable_email" [% IF (! project.enable_email) %]checked="checked"[% END %]" />[% loc("Disabled") %]</dd>
+    <dd>
+        <input type="radio" name="enable_email" value="1" [% IF (project.enable_email) %]checked="checked"[% END %] />[% loc("Enabled") %] 
+        <input type="radio" name="enable_email" value="0" [% IF (! project.enable_email) %]checked="checked"[% END %] />[% loc("Disabled") %]
+    </dd>
 </dl>
 
 <dl>
@@ -47,7 +50,7 @@
 
 <dl>
     <dt>[% loc("Default Assignment") %]</dt>
-    <dd><input type="text" name="default_assignment" size="40" value="[% project.default_assignment IF project.default_assignment %]"></dd>
+    <dd><input type="text" id="default_assignment" name="default_assignment" size="40" value="[% project.default_assignment IF project.default_assignment %]"></dd>
 </dl>
 
 <input id="next" type="button" value="[% loc('Next') %]" />

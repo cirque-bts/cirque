@@ -38,6 +38,9 @@
     <script type="text/javascript" src="/static/js/sh/shBrushVb.js"></script>
     <script type="text/javascript" src="/static/js/sh/shBrushXml.js"></script>
 
+    [% IF plugins.0 %]
+        [% FOREACH plugin IN plugins %][% INCLUDE plugin %][% END %]
+    [% END %]
     <script type="text/javascript">
 <!--
 

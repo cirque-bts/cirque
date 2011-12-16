@@ -1,5 +1,4 @@
 [% WRAPPER 'wrapper.tx' %]
-<a href="/man/Beginners_01"><img src="/static/images/for_beginner.png"></a>
 [% INCLUDE 'search_gadget_header.tx' %]
 
 [% MACRO search_gadget( id, query ) BLOCK %]

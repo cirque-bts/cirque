@@ -5,6 +5,12 @@ use Mouse;
 extends 'Cirque::WAF::Controller';
 with qw/ Cirque::Web::Controller::WithMemberInfo /;
 
+around execute => sub {
+    my ($next, $self, $action, $c) = @_;
+    $c->stash->{plugins} = $c->get('config')->{'Template::Plugins'} || [];
+    $self->$next( $action, $c );
+};
+
 sub login_member {
     my ($self, $c) = @_;
     return $c->request->session->{'member'};

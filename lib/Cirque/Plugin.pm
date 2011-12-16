@@ -72,6 +72,11 @@ sub get_config_file {
     return @files;
 }
 
+sub get_container_file {
+    my ( $self ) = @_;
+    File::Spec->catfile( $self->plugin_dir, 'etc', 'container.pl' );
+}
+
 sub add_config {
     my ($self, $ctxt, $file) = @_;
     my $config = require $file;
@@ -79,10 +84,18 @@ sub add_config {
     $ctxt->container->{objects}->{config} = { %{$ctxt->container->{objects}->{config}}, %$config };
 }
 
+sub merge_container {
+    my ($self, $ctxt, $container) = @_;
+    for my $key ( %{ $container->registry } ) {
+        $ctxt->container->register( "$key" => $container->registry->{"$key"} );
+    }
+}
+
 sub register {
     my ($self, $ctxt) = @_;
 
-    $self->callbacks->{register}->( $ctxt );
+    eval { $self->callbacks->{register}->( $ctxt ) };
+    Carp::confess $@ if $@;
 
     foreach my $name ( qw( Web JSONRPC ) ) {
         my $component = eval { $ctxt->get($name) };
@@ -94,6 +107,13 @@ sub register {
             if ( -f $file ) {
                 $self->add_config( $ctxt, $file );
             }
+        }
+
+        foreach my $file ( $self->get_container_file ) {
+            next unless -f $file;
+            my $container = require $file;
+            next unless $container;
+            $self->merge_container( $ctxt, $container );
         }
 
         # automatically add routes

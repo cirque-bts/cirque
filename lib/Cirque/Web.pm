@@ -29,9 +29,7 @@ sub _build_app {
                 path        => "/",
                 expires     => 86400,
             ),
-            store => Plack::Session::Store::DBI->new(
-                get_dbh => sub { $ctxt->get( 'DB::Master' )->dbh }
-            ),
+            store => $ctxt->get('Session::Store'), 
         );
     }
     if ( $ENV{PLACK_ENV} eq 'development' ) {

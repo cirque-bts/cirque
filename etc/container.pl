@@ -192,3 +192,17 @@ register 'JSONRPC::Handler::Dispatcher' => sub {
         router => $c->get('JSONRPC::Handler::Router'),
     );
 };
+
+register 'Session::Store' => sub {
+    my $c = shift;
+    my $config = $c->get('config')->{'Session::Store'};
+    my $class = $config->{class} ? 'Plack::Session::Store::'.$config->{class} : 'Plack::Session::Store::DBI';
+    my $options = $config->{build_option} ?
+        $config->{build_option}->( $c ) :
+        { get_dbh => sub { $c->get('DB::Master')->dbh } }
+    ;
+    unless ( Mouse::Util::is_class_loaded( $class ) ) {
+        Mouse::Util::load_class( $class );
+    }
+    $class->new( %$options );
+};
