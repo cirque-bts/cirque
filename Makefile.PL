@@ -1,21 +1,6 @@
 use strict;
 use ExtUtils::MakeMaker;
 
-# The additional \n helps to fool Module::Install
-sub MY::test_via_harness { "\tprove -r t\n" }
-
-sub MY::top_targets {
-    <<"..."
-all ::
-\t
-pure_all ::
-\t
-subdirs ::
-\t
-config ::
-\t
-...
-}
 
 WriteMakefile(
     NAME => "Cirque",
