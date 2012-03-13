@@ -2,7 +2,6 @@ package Cirque::HookConfig;
 
 use strict;
 use warnings;
-use Exporter 'import';
 use Carp ();
 
 sub load {
@@ -17,4 +16,9 @@ sub config_file {
     return sprintf( '%s/etc/hook_config/%s.pl', $ENV{'DEPLOY_HOME'}, $name );
 }
 
+sub config {
+    load( config_file( shift ) );
+}
+
 1;
+

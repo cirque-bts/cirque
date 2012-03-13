@@ -11,15 +11,10 @@ use Encode ();
 use JSON ();
 use Text::Xslate;
 use List::MoreUtils qw( uniq );
+use Cirque::HookConfig;
 
 # 設定項目
-my $config = {
-    'Email::Send' => {
-        mailer => 'Sendmail',
-    },
-    base_url => 'http://bts.example.com',
-    mail_from => 'cirque@bts.example.com',
-};
+my $config = Cirque::HookConfig::config( 'email' );
 
 # 標準入力からJSON形式で通知データを取得し、デシリアライズ。
 my $json = '';

@@ -10,15 +10,10 @@ use Furl;
 use HTTP::Request::Common;
 use JSON ();
 use Text::Xslate;
+use Cirque::HookConfig;
 
 # 設定項目
-my $config = {
-    base_url => 'http://bts.example.com',
-    ikachan => {
-        endpoint_url => 'http://ikachan.example.com',
-        channel => '#irc_channel',
-    },
-};
+my $config = Cirque::HookConfig::config( 'ikachan' );
 
 # 標準入力からJSON形式で通知データを取得し、デシリアライズ。
 my $json = '';
